@@ -10,7 +10,24 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 def main():
     """Main entry point with error handling."""
     try:
+        from PyQt5.QtWidgets import QApplication
+        from PyQt5.QtGui import QIcon
         from gui.system_tray import main as tray_main
+        
+        # Create application if it doesn't exist
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+        
+        # Set application icon globally
+        try:
+            icon_path = os.path.join(os.path.dirname(__file__), '..', 'icon-Photoroom.png')
+            icon_path = os.path.abspath(icon_path)
+            if os.path.exists(icon_path):
+                app.setWindowIcon(QIcon(icon_path))
+        except:
+            pass
+            
         return tray_main()
     except ImportError as e:
         print(f"Import error: {e}")

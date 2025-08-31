@@ -308,10 +308,25 @@ class BatteryManager:
             result: Successful CliResult with battery status data
             
         Returns:
-            BatteryInfo object with basic information
+            BatteryInfo object with complete information
         """
-        # For now, create basic info from parsed status
-        # In future, we could pass the full CLI output to BatteryInfo.from_cli_output()
+        # Get raw CLI output for full battery information parsing
+        try:
+            import subprocess
+            cli_result = subprocess.run(
+                ['a14-charge-keeper', 'status'],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if cli_result.returncode == 0:
+                # Use the full CLI output to get detailed battery info
+                return BatteryInfo.from_cli_output(cli_result.stdout)
+        except Exception as e:
+            print(f"Failed to get raw CLI output: {e}")
+        
+        # Fallback to basic info from parsed status
         return BatteryInfo(
             device=result.data.device,
             end_threshold=result.data.end_threshold,

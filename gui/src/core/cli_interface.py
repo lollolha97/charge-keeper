@@ -1,5 +1,6 @@
 """CLI interface for communicating with a14-charge-keeper command."""
 
+import os
 import subprocess
 from dataclasses import dataclass
 from typing import Optional, Any
@@ -116,16 +117,20 @@ class CliInterface:
         return isinstance(threshold, int) and 20 <= threshold <= 100
     
     def _execute_sudo_command(self, args: list[str]) -> CliResult:
-        """Execute CLI command with sudo privileges.
+        """Execute CLI command directly (assuming app is run with sudo).
         
         Args:
-            args: Command arguments (without sudo and CLI command name)
+            args: Command arguments (without CLI command name)
             
         Returns:
             CliResult indicating success or failure
         """
         try:
-            cmd = ['sudo', self.CLI_COMMAND] + args
+            # Since app is run with sudo, execute command directly
+            cmd = [self.CLI_COMMAND] + args
+            
+            print(f"Executing: {' '.join(cmd)}")  # Debug print
+            
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -133,15 +138,21 @@ class CliInterface:
                 timeout=self.TIMEOUT_SECONDS
             )
             
-            if result.returncode != 0:
-                error_msg = result.stderr.strip() or f"Command failed: {' '.join(cmd)}"
-                return CliResult.error(error_msg)
+            print(f"Return code: {result.returncode}")  # Debug print
+            if result.stdout:
+                print(f"Stdout: {result.stdout}")  # Debug print
+            if result.stderr:
+                print(f"Stderr: {result.stderr}")  # Debug print
             
-            return CliResult.success()
-            
-        except FileNotFoundError:
-            return CliResult.error("a14-charge-keeper not found")
+            if result.returncode == 0:
+                return CliResult.success()
+            else:
+                error_msg = result.stderr.strip() or "명령 실행에 실패했습니다."
+                return CliResult.error(f"오류: {error_msg}")
+                    
         except subprocess.TimeoutExpired:
-            return CliResult.error("Command timed out")
+            return CliResult.error("명령 실행 시간이 초과되었습니다.")
+        except FileNotFoundError:
+            return CliResult.error(f"{self.CLI_COMMAND}을 찾을 수 없습니다.")
         except Exception as e:
-            return CliResult.error(f"Unexpected error: {e}")
+            return CliResult.error(f"예상치 못한 오류: {e}")

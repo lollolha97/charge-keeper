@@ -7,9 +7,13 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QSlider, QPushButton
 )
 from PyQt5.QtCore import QTimer, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QPainter, QBrush, QPen, QColor
 
 from src.core.battery_manager import BatteryManager, BatteryInfo
+from src.gui.simple_battery_menu import SimpleBatteryMenu
+from src.gui.battery_popup import BatteryPopup
+from src.gui.simple_context_menu import SimpleContextMenu
+from src.gui.battery_detail_dialog import BatteryDetailDialog
 from src.core.cli_interface import CliResult
 
 
@@ -24,44 +28,116 @@ class TrayIcon(QSystemTrayIcon):
         """
         super().__init__(parent)
         
-        # Set default icon (create a simple colored square)
-        self._setup_default_icon()
+        # Set icon from file or fallback to default
+        self._setup_icon_from_file()
         
         # Set default tooltip
         self.setToolTip("A14 Charge Keeper")
         
-        # Setup context menu
-        self._setup_context_menu()
+        # This will be set by SystemTrayApp - don't create default menu
+        
+        # Connect click handler for popup
+        self.activated.connect(self._on_tray_activated)
+    
+    def _setup_icon_from_file(self):
+        """Setup icon from file or create default battery icon."""
+        try:
+            import os
+            icon_path = "/home/sang/Developments/tuf-charge-keeper/icon-Photoroom.png"
+            if os.path.exists(icon_path):
+                icon = QIcon(icon_path)
+                if not icon.isNull():
+                    self.setIcon(icon)
+                    print(f"Loaded tray icon from: {icon_path}")  # Debug
+                    return
+        except Exception as e:
+            print(f"Failed to load tray icon: {e}")  # Debug
+        
+        # Fallback to default battery icon
+        print("Using default battery icon")  # Debug
+        self._setup_default_icon()
     
     def _setup_default_icon(self):
         """Setup default battery icon."""
-        # Create a simple 16x16 colored pixmap as placeholder
-        pixmap = QPixmap(16, 16)
-        pixmap.fill()  # White background
-        icon = QIcon(pixmap)
+        # Create battery-shaped icon
+        icon = self._create_battery_icon(percentage=100, is_charging=False)
         self.setIcon(icon)
     
-    def _setup_context_menu(self):
-        """Setup context menu for tray icon."""
-        menu = QMenu()
+    def _create_battery_icon(self, percentage: int = 100, is_charging: bool = False) -> QIcon:
+        """Create battery-shaped icon with charge level.
         
-        # Battery status action
-        status_action = QAction("배터리 상태", self)
-        menu.addAction(status_action)
+        Args:
+            percentage: Battery percentage (0-100)
+            is_charging: Whether battery is charging
+            
+        Returns:
+            QIcon with battery shape
+        """
+        size = 22
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor(0, 0, 0, 0))  # Transparent background
         
-        menu.addSeparator()
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
         
-        # Settings action
-        settings_action = QAction("설정", self)
-        menu.addAction(settings_action)
+        # Battery body dimensions
+        body_width = 14
+        body_height = 8
+        body_x = 2
+        body_y = (size - body_height) // 2
         
-        menu.addSeparator()
+        # Terminal dimensions  
+        terminal_width = 2
+        terminal_height = 4
+        terminal_x = body_x + body_width
+        terminal_y = body_y + 2
         
-        # Quit action
-        quit_action = QAction("종료", self)
-        menu.addAction(quit_action)
+        # Draw battery body outline
+        painter.setPen(QPen(QColor(80, 80, 80), 1))
+        painter.setBrush(QBrush(QColor(240, 240, 240)))
+        painter.drawRect(body_x, body_y, body_width, body_height)
         
-        self.setContextMenu(menu)
+        # Draw battery terminal
+        painter.setBrush(QBrush(QColor(120, 120, 120)))
+        painter.drawRect(terminal_x, terminal_y, terminal_width, terminal_height)
+        
+        # Draw charge level
+        if percentage > 0:
+            charge_width = int((body_width - 2) * percentage / 100)
+            if percentage <= 20:
+                charge_color = QColor(231, 76, 60)  # Red for low
+            elif percentage <= 50:
+                charge_color = QColor(241, 196, 15)  # Yellow for medium
+            else:
+                charge_color = QColor(39, 174, 96)  # Green for good
+                
+            painter.setBrush(QBrush(charge_color))
+            painter.setPen(QPen(charge_color))
+            painter.drawRect(body_x + 1, body_y + 1, charge_width, body_height - 2)
+        
+        # Draw charging indicator (lightning bolt)
+        if is_charging:
+            painter.setPen(QPen(QColor(52, 152, 219), 2))
+            # Simple lightning bolt path
+            painter.drawLine(body_x + 4, body_y + 2, body_x + 7, body_y + 4)
+            painter.drawLine(body_x + 7, body_y + 4, body_x + 10, body_y + 2)
+            painter.drawLine(body_x + 7, body_y + 4, body_x + 10, body_y + 6)
+        
+        painter.end()
+        return QIcon(pixmap)
+    
+    def update_battery_icon(self, battery_info: BatteryInfo):
+        """Update tray icon based on battery info.
+        
+        Args:
+            battery_info: Current battery information
+        """
+        percentage = battery_info.percentage or 100
+        is_charging = battery_info.state and "charging" in battery_info.state.lower()
+        
+        icon = self._create_battery_icon(percentage, is_charging)
+        self.setIcon(icon)
+    
     
     def update_battery_status(self, battery_info: BatteryInfo):
         """Update icon and tooltip based on battery status.
@@ -119,6 +195,11 @@ class TrayIcon(QSystemTrayIcon):
             "unknown": "알 수 없음"
         }
         return translations.get(state.lower(), state)
+    
+    def _on_tray_activated(self, reason):
+        """Handle tray icon activation."""
+        # This will be handled by SystemTrayApp
+        pass
 
 
 class SystemTrayApp:
@@ -138,25 +219,29 @@ class SystemTrayApp:
         # Create tray icon
         self.tray_icon = TrayIcon()
         
+        # Setup simple context menu for right-click
+        self.context_menu = SimpleContextMenu(self.battery_manager)
+        self.context_menu.settings_requested.connect(self._show_popup)  # Settings will show popup
+        self.context_menu.status_requested.connect(self._show_status)
+        self.context_menu.quit_requested.connect(self._quit_application)
+        
+        # Don't set context menu - we'll handle clicks manually
+        # self.tray_icon.setContextMenu(self.context_menu)
+        
+        # Create popup for left-click
+        self.battery_popup = BatteryPopup(self.battery_manager)
+        self.battery_popup.closed.connect(self._on_popup_closed)
+        
+        # Create detail dialog for additional info
+        self.detail_dialog = None
+        
+        # Connect tray activation to show popup
+        self.tray_icon.activated.connect(self._on_tray_activated)
+        
         # Setup refresh timer
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self.refresh_battery_status)
-        
-        # Connect menu actions
-        self._connect_menu_actions()
     
-    def _connect_menu_actions(self):
-        """Connect context menu actions to handlers."""
-        menu = self.tray_icon.contextMenu()
-        actions = menu.actions()
-        
-        for action in actions:
-            if action.text() == "배터리 상태":
-                action.triggered.connect(self._show_status)
-            elif action.text() == "설정":
-                action.triggered.connect(self._show_settings)
-            elif action.text() == "종료":
-                action.triggered.connect(self._quit_application)
     
     def start(self) -> CliResult:
         """Start the system tray application.
@@ -198,20 +283,77 @@ class SystemTrayApp:
         result = self.battery_manager.refresh_status()
         
         if result.success and self.battery_manager.current_info:
-            self.tray_icon.update_battery_status(self.battery_manager.current_info)
+            # Update tray icon appearance
+            self.tray_icon.update_battery_icon(self.battery_manager.current_info)
+            
+            # Update tooltip
+            battery_info = self.battery_manager.current_info
+            tooltip = f"A14 Charge Keeper - {battery_info.percentage or '?'}%"
+            if battery_info.state:
+                state_map = {"charging": "충전 중", "discharging": "방전 중", "full": "완충"}
+                state = state_map.get(battery_info.state.lower(), battery_info.state)
+                tooltip += f" ({state})"
+            if battery_info.end_threshold != 100:
+                tooltip += f" | 제한: {battery_info.end_threshold}%"
+            self.tray_icon.setToolTip(tooltip)
+            
+            # Update popup if it's visible
+            if self.battery_popup.isVisible():
+                self.battery_popup.refresh_battery_info()
     
     def _show_status(self):
-        """Show battery status dialog."""
-        # TODO: Implement status dialog
-        print("Show status dialog")
+        """Show battery detail dialog."""
+        if self.detail_dialog is None:
+            self.detail_dialog = BatteryDetailDialog(self.battery_manager)
+        
+        # If dialog is already visible, just bring it to front
+        if self.detail_dialog.isVisible():
+            self.detail_dialog.raise_()
+            self.detail_dialog.activateWindow()
+            return
+        
+        # Show dialog first, then refresh data
+        self.detail_dialog.show()
+        self.detail_dialog.refresh_battery_info()
+        self.detail_dialog.raise_()
+        self.detail_dialog.activateWindow()
     
-    def _show_settings(self):
-        """Show settings dialog."""
-        # TODO: Implement settings dialog
-        print("Show settings dialog")
+    
+    
+    def _on_tray_activated(self, reason):
+        """Handle tray icon activation."""
+        print(f"Tray activated with reason: {reason}")  # Debug print
+        
+        if reason == QSystemTrayIcon.Trigger or reason == QSystemTrayIcon.DoubleClick:  # Left click or double click
+            print("Showing popup...")  # Debug print
+            self._show_popup()
+        elif reason == QSystemTrayIcon.Context:  # Right click
+            print("Showing context menu...")  # Debug print
+            self._show_context_menu()
+    
+    def _show_popup(self):
+        """Show battery popup near cursor."""
+        # Refresh popup data
+        self.battery_popup.refresh_battery_info()
+        
+        # Show popup near cursor
+        self.battery_popup.show_near_cursor()
+    
+    def _show_context_menu(self):
+        """Show context menu at cursor position."""
+        from PyQt5.QtGui import QCursor
+        self.context_menu.popup(QCursor.pos())
+    
+    def _on_popup_closed(self):
+        """Handle popup closed."""
+        pass  # Nothing special needed when popup closes
     
     def _quit_application(self):
         """Quit the application."""
+        # Close popup if open
+        if self.battery_popup.isVisible():
+            self.battery_popup.close()
+        
         self.stop()
         if QApplication.instance():
             QApplication.instance().quit()
