@@ -237,6 +237,7 @@ class SystemTrayApp:
         
         # Apply saved theme to popup immediately after creation
         saved_theme = self.config_manager.get('theme', 'dark')
+        print(f"Applying initial theme {saved_theme} to battery popup during creation")
         self.battery_popup.apply_theme(saved_theme)
         self.battery_popup.closed.connect(self._on_popup_closed)
         
@@ -283,8 +284,8 @@ class SystemTrayApp:
         # Initial status update
         self.refresh_battery_status()
         
-        # Apply saved theme settings on startup
-        self._apply_theme_changes()
+        # Debug: Check config manager state
+        print(f"Config manager loaded theme: {self.config_manager.get('theme', 'NOT_FOUND')}")
         
         return CliResult.success()
     
@@ -435,17 +436,23 @@ class SystemTrayApp:
             print(f"Applying theme: {theme}")
             
             # Apply theme to battery popup
-            if hasattr(self.battery_popup, 'apply_theme'):
+            if self.battery_popup:
+                print(f"Applying theme {theme} to battery popup")
                 self.battery_popup.apply_theme(theme)
+            else:
+                print("Battery popup not available for theme application")
             
             # Apply theme to detail dialog if it exists
             if self.detail_dialog:
+                print(f"Applying theme {theme} to detail dialog")
                 self.detail_dialog.apply_theme(theme)
                 
             # Settings dialog will apply theme when opened next time
             
         except Exception as e:
             print(f"Error applying theme changes: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _on_tray_activated(self, reason):
         """Handle tray icon activation."""
