@@ -45,7 +45,7 @@ class TrayIcon(QSystemTrayIcon):
         """Setup icon from file or create default battery icon."""
         try:
             import os
-            icon_path = "/home/sang/Developments/tuf-charge-keeper/icon-Photoroom.png"
+            icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
             if os.path.exists(icon_path):
                 icon = QIcon(icon_path)
                 if not icon.isNull():
@@ -132,11 +132,9 @@ class TrayIcon(QSystemTrayIcon):
         Args:
             battery_info: Current battery information
         """
-        percentage = battery_info.percentage or 100
-        is_charging = battery_info.state and "charging" in battery_info.state.lower()
-        
-        icon = self._create_battery_icon(percentage, is_charging)
-        self.setIcon(icon)
+        # Keep using the fixed charge-keeper.png icon
+        # Don't change icon dynamically to maintain consistent branding
+        pass
     
     
     def update_battery_status(self, battery_info: BatteryInfo):

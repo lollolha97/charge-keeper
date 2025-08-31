@@ -57,7 +57,7 @@ def main():
         
         # Set application icon globally
         try:
-            icon_path = os.path.join(os.path.dirname(__file__), '..', 'icon-Photoroom.png')
+            icon_path = os.path.join(os.path.dirname(__file__), '..', 'charge-keeper.png')
             icon_path = os.path.abspath(icon_path)
             if os.path.exists(icon_path):
                 app.setWindowIcon(QIcon(icon_path))

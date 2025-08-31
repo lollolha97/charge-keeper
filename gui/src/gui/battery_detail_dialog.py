@@ -35,7 +35,7 @@ class BatteryDetailDialog(QDialog):
         
         # Set window icon
         try:
-            icon_path = "/home/sang/Developments/tuf-charge-keeper/icon-Photoroom.png"
+            icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
             self.setWindowIcon(QIcon(icon_path))
         except:
             pass  # If icon file not found, continue without it

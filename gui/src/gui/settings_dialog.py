@@ -38,7 +38,7 @@ class SettingsDialog(QDialog):
         
         # Set window icon
         try:
-            icon_path = "/home/sang/Developments/tuf-charge-keeper/icon-Photoroom.png"
+            icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
             self.setWindowIcon(QIcon(icon_path))
         except:
             pass
