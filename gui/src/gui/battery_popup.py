@@ -324,34 +324,26 @@ class BatteryPopup(QWidget):
         percentage = battery_info.percentage or 0
         state = battery_info.state.lower() if battery_info.state else ""
         
-        print(f"Battery state: '{battery_info.state}' (lower: '{state}')")
-        print(f"Battery percentage: {percentage}")
-        print(f"Is charging check: {state == 'charging'}")
+        # Removed debug prints for production
         
         # Determine color based on state and percentage
         if state == "charging":
             # Charging: Blue/cyan colors
             if percentage >= 80:
                 color = "#007aff"  # Blue
-                print("Color: Blue (charging 80%+)")
             elif percentage >= 50:
                 color = "#5ac8fa"  # Light blue
-                print("Color: Light blue (charging 50-79%)")
             else:
                 color = "#64d2ff"  # Cyan
-                print("Color: Cyan (charging <50%)")
         elif percentage <= 20:
             # Low battery: Red
             color = "#ff453a"
-            print("Color: Red (low battery)")
         elif percentage <= 50:
             # Medium battery: Orange/Yellow
             color = "#ff9f0a"
-            print("Color: Orange (medium battery)")
         else:
             # Good battery: Green
             color = "#30d158"
-            print("Color: Green (good battery)")
         
         # Apply the color to progress bar
         self.battery_progress.setStyleSheet(f"""

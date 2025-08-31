@@ -50,7 +50,11 @@ class SettingsDialog(QDialog):
             y = parent_rect.y() + (parent_rect.height() - self.height()) // 2
             self.move(x, y)
         
-        # Apply dark theme styling
+        # Apply dark theme (based on light theme structure)
+        self._apply_dark_theme()
+    
+    def _apply_dark_theme(self):
+        """Apply dark theme based on light theme structure."""
         self.setStyleSheet("""
             QDialog {
                 background-color: #1c1c1e;
@@ -58,83 +62,30 @@ class SettingsDialog(QDialog):
             }
             QLabel {
                 color: #ffffff;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
             QGroupBox {
-                font-weight: 600;
-                border: 2px solid #3a3a3c;
-                border-radius: 8px;
-                margin-top: 1ex;
-                padding-top: 10px;
                 color: #ffffff;
+                border: 2px solid #3a3a3c;
             }
             QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
                 color: #007aff;
             }
             QCheckBox {
                 color: #ffffff;
-                spacing: 8px;
-            }
-            QCheckBox::indicator {
-                width: 16px;
-                height: 16px;
-                border-radius: 3px;
-                border: 2px solid #3a3a3c;
-                background-color: #2c2c2e;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #007aff;
-                border-color: #007aff;
             }
             QSpinBox, QComboBox {
                 background-color: #2c2c2e;
                 border: 1px solid #3a3a3c;
-                border-radius: 6px;
-                padding: 6px;
                 color: #ffffff;
-                min-height: 20px;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                background-color: #3a3a3c;
-                border: none;
-                width: 16px;
-            }
-            QSpinBox::up-arrow, QSpinBox::down-arrow {
-                width: 8px;
-                height: 8px;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 20px;
-            }
-            QComboBox::down-arrow {
-                width: 8px;
-                height: 8px;
             }
             QPushButton {
                 background-color: #007aff;
                 color: #ffffff;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 500;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background-color: #0051d5;
-            }
-            QPushButton:pressed {
-                background-color: #003d82;
             }
             QPushButton[class="secondary"] {
                 background-color: #2c2c2e;
                 border: 1px solid #3a3a3c;
-            }
-            QPushButton[class="secondary"]:hover {
-                background-color: #3a3a3c;
+                color: #ffffff;
             }
         """)
     
@@ -156,7 +107,8 @@ class SettingsDialog(QDialog):
         # General settings group
         general_group = QGroupBox("General")
         general_layout = QGridLayout()
-        general_layout.setSpacing(12)
+        general_layout.setSpacing(10)
+        general_layout.setContentsMargins(10, 15, 10, 10)
         
         # Auto start checkbox
         self.auto_start_checkbox = QCheckBox("Start automatically with system")
@@ -188,7 +140,8 @@ class SettingsDialog(QDialog):
         # Appearance group
         appearance_group = QGroupBox("Appearance")
         appearance_layout = QGridLayout()
-        appearance_layout.setSpacing(12)
+        appearance_layout.setSpacing(10)
+        appearance_layout.setContentsMargins(10, 15, 10, 10)
         
         # Theme selection
         theme_label = QLabel("Theme:")
@@ -259,7 +212,7 @@ class SettingsDialog(QDialog):
         # Persist to file
         self.config_manager.save()
         
-        # Emit settings changed signal
+        # Emit settings changed signal directly
         self.settings_changed.emit()
     
     def reset_to_defaults(self):
@@ -271,11 +224,41 @@ class SettingsDialog(QDialog):
     def ok_clicked(self):
         """Handle OK button click."""
         try:
-            self.save_settings()
+            # Save settings without emitting signal yet
+            self._save_settings_without_signal()
+            
+            # Close dialog first
             self.accept()
+            
+            # Emit signal after dialog is closed to prevent Qt conflicts
+            self.settings_changed.emit()
+            
         except ValueError as e:
             # TODO: Show error message dialog
             print(f"Settings error: {e}")
+    
+    def _save_settings_without_signal(self):
+        """Save settings to config manager without emitting signal."""
+        # Get values from UI
+        auto_start = self.auto_start_checkbox.isChecked()
+        default_threshold = self.threshold_spinbox.value()
+        theme = self.theme_combo.currentText().lower()
+        refresh_interval = self.refresh_interval_spinbox.value()
+        show_notifications = self.notifications_checkbox.isChecked()
+        
+        # Validate threshold
+        if not 20 <= default_threshold <= 100:
+            raise ValueError("Threshold must be between 20 and 100")
+        
+        # Save to config manager
+        self.config_manager.set('auto_start', auto_start)
+        self.config_manager.set('default_threshold', default_threshold)
+        self.config_manager.set('theme', theme)
+        self.config_manager.set('refresh_interval', refresh_interval)
+        self.config_manager.set('show_notifications', show_notifications)
+        
+        # Persist to file
+        self.config_manager.save()
     
     def cancel_clicked(self):
         """Handle Cancel button click."""
@@ -323,5 +306,5 @@ class SettingsDialog(QDialog):
                 }
             """)
         else:
-            # Reapply dark theme
-            self._setup_window_properties()
+            # Reapply simplified dark theme
+            self._apply_dark_theme()

@@ -50,13 +50,11 @@ class TrayIcon(QSystemTrayIcon):
                 icon = QIcon(icon_path)
                 if not icon.isNull():
                     self.setIcon(icon)
-                    print(f"Loaded tray icon from: {icon_path}")  # Debug
                     return
-        except Exception as e:
-            print(f"Failed to load tray icon: {e}")  # Debug
+        except Exception:
+            pass
         
         # Fallback to default battery icon
-        print("Using default battery icon")  # Debug
         self._setup_default_icon()
     
     def _setup_default_icon(self):
@@ -247,9 +245,8 @@ class SystemTrayApp:
         # Connect tray activation to show popup
         self.tray_icon.activated.connect(self._on_tray_activated)
         
-        # Setup refresh timer
-        self.refresh_timer = QTimer()
-        self.refresh_timer.timeout.connect(self.refresh_battery_status)
+        # Setup refresh timer (will be started in start() method)
+        self.refresh_timer = None
     
     
     def start(self) -> CliResult:
@@ -267,8 +264,10 @@ class SystemTrayApp:
         # Show tray icon
         self.tray_icon.show()
         
-        # Start auto-refresh timer
+        # Create and start refresh timer in main thread
         if self.refresh_interval > 0:
+            self.refresh_timer = QTimer()
+            self.refresh_timer.timeout.connect(self.refresh_battery_status)
             self.refresh_timer.start(self.refresh_interval)
         
         # Initial status update
@@ -279,7 +278,8 @@ class SystemTrayApp:
     def stop(self):
         """Stop the system tray application."""
         # Stop timer
-        self.refresh_timer.stop()
+        if self.refresh_timer:
+            self.refresh_timer.stop()
         
         # Hide tray icon
         self.tray_icon.hide()
@@ -346,23 +346,40 @@ class SystemTrayApp:
     
     def _on_settings_changed(self):
         """Handle settings changes."""
-        # Update refresh interval
-        new_interval = self.config_manager.get('refresh_interval', 30) * 1000
-        if new_interval != self.refresh_interval:
-            self.refresh_interval = new_interval
-            if self.refresh_timer.isActive():
+        try:
+            # Update refresh interval with delay to prevent Qt conflicts
+            QTimer.singleShot(100, self._update_refresh_interval)
+        except Exception as e:
+            print(f"Error updating settings: {e}")
+    
+    def _update_refresh_interval(self):
+        """Update refresh interval in a safe Qt context."""
+        try:
+            new_interval = self.config_manager.get('refresh_interval', 30) * 1000
+            if new_interval != self.refresh_interval:
+                self.refresh_interval = new_interval
+                self._restart_timer()
+        except Exception as e:
+            print(f"Error updating refresh interval: {e}")
+    
+    def _restart_timer(self):
+        """Restart the refresh timer in main thread context."""
+        try:
+            if self.refresh_timer and self.refresh_timer.isActive():
                 self.refresh_timer.stop()
+            if self.refresh_interval > 0:
+                if not self.refresh_timer:
+                    self.refresh_timer = QTimer()
+                    self.refresh_timer.timeout.connect(self.refresh_battery_status)
                 self.refresh_timer.start(self.refresh_interval)
+        except Exception as e:
+            print(f"Error restarting timer: {e}")
     
     def _on_tray_activated(self, reason):
         """Handle tray icon activation."""
-        print(f"Tray activated with reason: {reason}")  # Debug print
-        
         if reason == QSystemTrayIcon.Trigger or reason == QSystemTrayIcon.DoubleClick:  # Left click or double click
-            print("Showing popup...")  # Debug print
             self._show_popup()
         elif reason == QSystemTrayIcon.Context:  # Right click
-            print("Showing context menu...")  # Debug print
             self._show_context_menu()
     
     def _show_popup(self):
