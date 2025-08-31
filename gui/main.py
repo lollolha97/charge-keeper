@@ -7,17 +7,48 @@ import os
 # Add src to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
+def setup_qt_for_root():
+    """Setup Qt environment for safe root execution."""
+    # Fix XDG_RUNTIME_DIR issue for root
+    if os.geteuid() == 0:  # Running as root
+        original_user = os.environ.get('SUDO_USER', 'root')
+        
+        # Set proper XDG_RUNTIME_DIR for Qt
+        if not os.environ.get('XDG_RUNTIME_DIR'):
+            runtime_dir = f"/tmp/runtime-{original_user}"
+            os.makedirs(runtime_dir, mode=0o700, exist_ok=True)
+            os.environ['XDG_RUNTIME_DIR'] = runtime_dir
+        
+        # Set HOME to original user's home for Qt config
+        if original_user != 'root':
+            import pwd
+            try:
+                user_info = pwd.getpwnam(original_user)
+                os.environ['HOME'] = user_info.pw_dir
+            except KeyError:
+                pass
+        
+        # Disable Qt's security restrictions for root
+        os.environ['QT_X11_NO_MITSHM'] = '1'
+        os.environ['QT_QUICK_BACKEND'] = 'software'
+
 def main():
     """Main entry point with error handling."""
     try:
+        # Setup Qt environment for root execution
+        setup_qt_for_root()
+        
         from PyQt5.QtWidgets import QApplication
         from PyQt5.QtGui import QIcon
         from gui.system_tray import main as tray_main
         
-        # Create application if it doesn't exist
+        # Create application with proper Qt attributes for root
         app = QApplication.instance()
         if app is None:
             app = QApplication(sys.argv)
+            # Disable problematic Qt features when running as root
+            if os.geteuid() == 0:
+                app.setAttribute(app.AA_X11InitThreads, False)
         
         # Set application icon globally
         try:
