@@ -65,7 +65,6 @@ class BatteryDetailDialog(QDialog):
             self.setStyleSheet("""
                 QDialog {
                     background-color: #f8f9fa;
-                    border: 2px solid #007aff;
                     border-radius: 12px;
                 }
                 QLabel {
@@ -73,12 +72,11 @@ class BatteryDetailDialog(QDialog):
                     background: transparent;
                     border: none;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    font-weight: 500;
                 }
                 QFrame {
                     background-color: #ffffff;
                     border-radius: 8px;
-                    border: 2px solid #dee2e6;
+                    border: 1px solid #dee2e6;
                 }
                 QPushButton {
                     background-color: #007aff;
@@ -87,7 +85,7 @@ class BatteryDetailDialog(QDialog):
                     border-radius: 6px;
                     padding: 8px 16px;
                     font-size: 13px;
-                    font-weight: 600;
+                    font-weight: 500;
                 }
                 QPushButton:hover {
                     background-color: #0051d5;
@@ -98,16 +96,15 @@ class BatteryDetailDialog(QDialog):
                 QTableWidget {
                     background-color: #ffffff;
                     color: #212529;
-                    border: 2px solid #dee2e6;
+                    border: 1px solid #dee2e6;
                     border-radius: 6px;
-                    gridline-color: #dee2e6;
-                    font-weight: 500;
+                    gridline-color: #ced4da;
                 }
                 QTableWidget::item {
                     background-color: #ffffff;
                     color: #212529;
-                    border-bottom: 1px solid #dee2e6;
-                    padding: 10px 8px;
+                    border-bottom: 1px solid #ced4da;
+                    padding: 8px;
                 }
                 QTableWidget::item:alternate {
                     background-color: #f8f9fa;
@@ -117,12 +114,11 @@ class BatteryDetailDialog(QDialog):
                     color: #ffffff;
                 }
                 QHeaderView::section {
-                    background-color: #e9ecef;
-                    color: #495057;
-                    border: 1px solid #dee2e6;
-                    border-bottom: 2px solid #007aff;
-                    padding: 10px 8px;
-                    font-weight: 600;
+                    background-color: #f8f9fa;
+                    color: #212529;
+                    border: 1px solid #ced4da;
+                    padding: 8px;
+                    font-weight: bold;
                 }
             """)
         else:

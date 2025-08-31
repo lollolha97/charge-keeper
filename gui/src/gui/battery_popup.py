@@ -81,7 +81,7 @@ class BatteryPopup(QWidget):
             self.setStyleSheet("""
                 BatteryPopup {
                     background-color: #f8f9fa;
-                    border: 2px solid #007aff;
+                    border: 1px solid #dee2e6;
                     border-radius: 12px;
                 }
                 QLabel {
@@ -89,7 +89,6 @@ class BatteryPopup(QWidget):
                     background-color: transparent;
                     border: none;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    font-weight: 500;
                     padding: 0px;
                     margin: 0px;
                 }
@@ -100,31 +99,29 @@ class BatteryPopup(QWidget):
                 }
                 QSlider::groove:horizontal {
                     background: #ced4da;
-                    height: 3px;
+                    height: 2px;
                     border-radius: 1px;
                     border: none;
-                    margin: 8px 0;
+                    margin: 9px 0;
                 }
                 QSlider::handle:horizontal {
                     background: #007aff;
-                    border: 2px solid #ffffff;
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 8px;
-                    margin: -7px 0;
+                    border: none;
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 7px;
+                    margin: -6px 0;
                 }
                 QSlider::handle:horizontal:hover {
                     background: #0051d5;
-                    border: 2px solid #ffffff;
                 }
                 QSlider::handle:horizontal:pressed {
                     background: #003d82;
-                    border: 2px solid #ffffff;
                 }
                 QProgressBar {
                     border: 1px solid #ced4da;
                     border-radius: 4px;
-                    background-color: #e9ecef;
+                    background-color: #ffffff;
                     height: 8px;
                     text-align: center;
                 }
@@ -421,7 +418,7 @@ class BatteryPopup(QWidget):
             color = "#30d158"
         
         # Get current theme to set appropriate background
-        background_color = "#e9ecef" if hasattr(self, '_current_theme') and self._current_theme == 'light' else "#2c2c2e"
+        background_color = "#ffffff" if hasattr(self, '_current_theme') and self._current_theme == 'light' else "#2c2c2e"
         
         # Apply the color to progress bar
         self.battery_progress.setStyleSheet(f"""
