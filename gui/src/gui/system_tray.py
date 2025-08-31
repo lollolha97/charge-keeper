@@ -229,6 +229,11 @@ class SystemTrayApp:
         self.context_menu.status_requested.connect(self._show_status)
         self.context_menu.quit_requested.connect(self._quit_application)
         
+        # Apply saved theme to context menu
+        saved_theme = self.config_manager.get('theme', 'dark')
+        print(f"Applying initial theme {saved_theme} to context menu during creation")
+        self.context_menu.apply_theme(saved_theme)
+        
         # Don't set context menu - we'll handle clicks manually
         # self.tray_icon.setContextMenu(self.context_menu)
         
@@ -452,6 +457,11 @@ class SystemTrayApp:
             if self.detail_dialog:
                 print(f"Applying theme {theme} to detail dialog")
                 self.detail_dialog.apply_theme(theme)
+            
+            # Apply theme to context menu
+            if self.context_menu:
+                print(f"Applying theme {theme} to context menu")
+                self.context_menu.apply_theme(theme)
                 
             # Settings dialog will apply theme when opened next time
             

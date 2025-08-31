@@ -45,35 +45,77 @@ class SimpleContextMenu(QMenu):
         quit_action.triggered.connect(self.quit_requested.emit)
         self.addAction(quit_action)
         
-        # Apply modern rounded styling
-        self.setStyleSheet("""
-            QMenu {
-                background-color: #1c1c1e;
-                color: #ffffff;
-                border: 1px solid #38383a;
-                border-radius: 12px;
-                padding: 8px;
-                font-size: 13px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                font-weight: 500;
-            }
-            QMenu::item {
-                padding: 10px 16px;
-                border-radius: 8px;
-                min-width: 140px;
-                margin: 2px;
-            }
-            QMenu::item:selected {
-                background-color: #007aff;
-                color: #ffffff;
-            }
-            QMenu::item:pressed {
-                background-color: #0051d5;
-            }
-            QMenu::separator {
-                height: 1px;
-                background-color: #3a3a3c;
-                margin: 6px 12px;
-                border: none;
-            }
-        """)
+        # Don't apply hardcoded style - will be set by theme
+        self.apply_theme('dark')  # Default theme
+    
+    def apply_theme(self, theme='dark'):
+        """Apply theme to context menu."""
+        print(f"SimpleContextMenu: Applying {theme} theme")
+        
+        if theme == 'light':
+            self.setStyleSheet("""
+                QMenu {
+                    background-color: #f8f9fa;
+                    color: #212529;
+                    border: 1px solid #dee2e6;
+                    border-radius: 12px;
+                    padding: 8px;
+                    font-size: 13px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-weight: 500;
+                }
+                QMenu::item {
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    min-width: 140px;
+                    margin: 2px;
+                }
+                QMenu::item:selected {
+                    background-color: #007aff;
+                    color: #ffffff;
+                }
+                QMenu::item:pressed {
+                    background-color: #0051d5;
+                }
+                QMenu::separator {
+                    height: 1px;
+                    background-color: #ced4da;
+                    margin: 6px 12px;
+                    border: none;
+                }
+            """)
+        else:
+            # Dark theme
+            self.setStyleSheet("""
+                QMenu {
+                    background-color: #1c1c1e;
+                    color: #ffffff;
+                    border: 1px solid #38383a;
+                    border-radius: 12px;
+                    padding: 8px;
+                    font-size: 13px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-weight: 500;
+                }
+                QMenu::item {
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    min-width: 140px;
+                    margin: 2px;
+                }
+                QMenu::item:selected {
+                    background-color: #007aff;
+                    color: #ffffff;
+                }
+                QMenu::item:pressed {
+                    background-color: #0051d5;
+                }
+                QMenu::separator {
+                    height: 1px;
+                    background-color: #3a3a3c;
+                    margin: 6px 12px;
+                    border: none;
+                }
+            """)
+        
+        print(f"SimpleContextMenu: {theme} theme stylesheet applied")
