@@ -234,6 +234,10 @@ class SystemTrayApp:
         
         # Create popup for left-click
         self.battery_popup = BatteryPopup(self.battery_manager)
+        
+        # Apply saved theme to popup immediately after creation
+        saved_theme = self.config_manager.get('theme', 'dark')
+        self.battery_popup.apply_theme(saved_theme)
         self.battery_popup.closed.connect(self._on_popup_closed)
         
         # Create detail dialog for additional info
@@ -278,6 +282,9 @@ class SystemTrayApp:
         
         # Initial status update
         self.refresh_battery_status()
+        
+        # Apply saved theme settings on startup
+        self._apply_theme_changes()
         
         return CliResult.success()
     
