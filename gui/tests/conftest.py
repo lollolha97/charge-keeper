@@ -1,7 +1,22 @@
 """pytest configuration and fixtures for GUI testing."""
 
 import pytest
+import sys
 from unittest.mock import Mock, MagicMock
+from PyQt5.QtWidgets import QApplication
+
+
+# Ensure QApplication instance exists for GUI tests
+@pytest.fixture(scope='session')
+def qapp():
+    """Create QApplication instance for GUI testing."""
+    if not QApplication.instance():
+        app = QApplication(sys.argv)
+    else:
+        app = QApplication.instance()
+    yield app
+
+
 
 
 @pytest.fixture
