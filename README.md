@@ -125,7 +125,7 @@ sudo a14-charge-keeper persist 80     # Set and make persistent
 ### GUI Installation
 ```bash
 # Download and install GUI package
-wget https://github.com/your-repo/releases/download/v1.0.0/a14-charge-keeper-gui_1.0.0_all.deb
+wget https://github.com/lollolha97/tuf-charge-keeper/releases/download/v1.0.0/a14-charge-keeper-gui_1.0.0_all.deb
 sudo dpkg -i a14-charge-keeper-gui_1.0.0_all.deb
 sudo apt-get install -f  # Fix any missing dependencies
 ```
@@ -133,14 +133,14 @@ sudo apt-get install -f  # Fix any missing dependencies
 ### CLI-only Installation
 ```bash
 # Download and install CLI package
-wget https://github.com/your-repo/releases/download/v0.3.0/a14-charge-keeper_0.3.0_all.deb
+wget https://github.com/lollolha97/tuf-charge-keeper/releases/download/v0.3.0/a14-charge-keeper_0.3.0_all.deb
 sudo dpkg -i a14-charge-keeper_0.3.0_all.deb
 ```
 
 ### Manual Installation
 ```bash
 # Clone repository
-git clone https://github.com/your-repo/tuf-charge-keeper.git
+git clone https://github.com/lollolha97/tuf-charge-keeper.git
 cd tuf-charge-keeper
 
 # Install CLI tool
@@ -248,7 +248,7 @@ sudo a14-charge-keeper persist 60
 ### Building from Source
 ```bash
 # Clone and setup development environment
-git clone https://github.com/your-repo/tuf-charge-keeper.git
+git clone https://github.com/lollolha97/tuf-charge-keeper.git
 cd tuf-charge-keeper
 
 # Install development dependencies
@@ -357,7 +357,7 @@ See [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) for detailed benchmarks a
 We welcome contributions! This project follows **Test-Driven Development** and maintains high code quality standards.
 
 ### **🚀 Quick Contribution Guide**
-1. **🍴 Fork & Clone**: `git clone https://github.com/your-username/tuf-charge-keeper.git`
+1. **🍴 Fork & Clone**: `git clone https://github.com/lollolha97/tuf-charge-keeper.git`
 2. **🌿 Branch**: `git checkout -b feature/awesome-improvement`
 3. **🧪 Test-First**: Write tests before implementation (TDD methodology)
 4. **⚡ Hardware Test**: Verify on real Linux hardware
@@ -374,7 +374,7 @@ We welcome contributions! This project follows **Test-Driven Development** and m
 ### **🏗️ Development Setup**
 ```bash
 # Clone and setup
-git clone https://github.com/your-repo/tuf-charge-keeper.git
+git clone https://github.com/lollolha97/tuf-charge-keeper.git
 cd tuf-charge-keeper
 
 # Install dev dependencies
@@ -436,8 +436,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **⭐ Star this repo if it helped you manage your battery better!**
 
-![GitHub stars](https://img.shields.io/github/stars/your-repo/tuf-charge-keeper?style=social)
-![GitHub forks](https://img.shields.io/github/forks/your-repo/tuf-charge-keeper?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/your-repo/tuf-charge-keeper?style=social)
+![GitHub stars](https://img.shields.io/github/stars/lollolha97/tuf-charge-keeper?style=social)
+![GitHub forks](https://img.shields.io/github/forks/lollolha97/tuf-charge-keeper?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/lollolha97/tuf-charge-keeper?style=social)
 
 </div>

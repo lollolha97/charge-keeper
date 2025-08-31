@@ -4,7 +4,7 @@ Section: utils
 Priority: optional
 Architecture: all
 Depends: python3 (>= 3.8), python3-pyqt5, a14-charge-keeper (>= 0.3.0), policykit-1
-Maintainer: A14 Charge Keeper Team <noreply@example.com>
+Maintainer: lollolha97 <lollolha97@gmail.com>
 Description: Charge Keeper - Battery management GUI
  Graphical user interface for managing battery charging limits
  on supported laptops. Provides system tray integration, 
@@ -15,4 +15,4 @@ Description: Charge Keeper - Battery management GUI
   * Dark/Light theme support
   * Settings dialog for threshold configuration
   * Automatic privilege escalation with PolicyKit
-Homepage: https://github.com/example/a14-charge-keeper
+Homepage: https://github.com/lollolha97/tuf-charge-keeper
