@@ -62,19 +62,21 @@ class BatteryDetailDialog(QDialog):
         if theme == 'light':
             self.setStyleSheet("""
                 QDialog {
-                    background-color: #ffffff;
+                    background-color: #f8f9fa;
+                    border: 2px solid #007aff;
                     border-radius: 12px;
                 }
                 QLabel {
-                    color: #000000;
+                    color: #212529;
                     background: transparent;
                     border: none;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-weight: 500;
                 }
                 QFrame {
-                    background-color: #f8f8f8;
+                    background-color: #ffffff;
                     border-radius: 8px;
-                    border: 1px solid #e0e0e0;
+                    border: 2px solid #dee2e6;
                 }
                 QPushButton {
                     background-color: #007aff;
@@ -83,7 +85,7 @@ class BatteryDetailDialog(QDialog):
                     border-radius: 6px;
                     padding: 8px 16px;
                     font-size: 13px;
-                    font-weight: 500;
+                    font-weight: 600;
                 }
                 QPushButton:hover {
                     background-color: #0051d5;
@@ -93,27 +95,32 @@ class BatteryDetailDialog(QDialog):
                 }
                 QTableWidget {
                     background-color: #ffffff;
-                    color: #000000;
-                    border: 1px solid #e0e0e0;
+                    color: #212529;
+                    border: 2px solid #dee2e6;
                     border-radius: 6px;
-                    gridline-color: #e0e0e0;
+                    gridline-color: #dee2e6;
+                    font-weight: 500;
                 }
                 QTableWidget::item {
                     background-color: #ffffff;
-                    color: #000000;
-                    border: none;
-                    padding: 8px;
+                    color: #212529;
+                    border-bottom: 1px solid #dee2e6;
+                    padding: 10px 8px;
+                }
+                QTableWidget::item:alternate {
+                    background-color: #f8f9fa;
                 }
                 QTableWidget::item:selected {
                     background-color: #007aff;
                     color: #ffffff;
                 }
                 QHeaderView::section {
-                    background-color: #f0f0f0;
-                    color: #000000;
-                    border: 1px solid #e0e0e0;
-                    padding: 8px;
-                    font-weight: bold;
+                    background-color: #e9ecef;
+                    color: #495057;
+                    border: 1px solid #dee2e6;
+                    border-bottom: 2px solid #007aff;
+                    padding: 10px 8px;
+                    font-weight: 600;
                 }
             """)
         else:
