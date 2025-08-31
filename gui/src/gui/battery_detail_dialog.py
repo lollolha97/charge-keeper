@@ -74,6 +74,10 @@ class BatteryDetailDialog(QDialog):
                     border: none;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
+                QLabel[objectName="title_label"] {
+                    color: #212529;
+                    padding: 0px 0px 8px 0px;
+                }
                 QFrame {
                     background-color: #ffffff;
                     border-radius: 8px;
@@ -134,6 +138,10 @@ class BatteryDetailDialog(QDialog):
                     background: transparent;
                     border: none;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                QLabel[objectName="title_label"] {
+                    color: #ffffff;
+                    padding: 0px 0px 8px 0px;
                 }
                 QFrame {
                     background-color: #2c2c2e;
@@ -217,7 +225,7 @@ class BatteryDetailDialog(QDialog):
         title_font.setWeight(QFont.Bold)
         title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("color: #ffffff; padding: 0px 0px 8px 0px;")
+        title_label.setObjectName("title_label")  # Use CSS selector instead
         main_layout.addWidget(title_label)
         
         # Use QTableWidget with sectioned layout
@@ -300,35 +308,7 @@ class BatteryDetailDialog(QDialog):
                 spacer_item2.setBackground(QColor("#1c1c1e"))
                 self.info_table.setItem(row, 1, spacer_item2)
         
-        # Enhanced table styling
-        self.info_table.setStyleSheet("""
-            QTableWidget {
-                background-color: #1c1c1e;
-                color: #ffffff;
-                border: none;
-                selection-background-color: transparent;
-                gridline-color: #3a3a3c;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                border-radius: 8px;
-            }
-            QTableWidget::item {
-                padding: 10px 12px;
-                border: none;
-                border-bottom: 1px solid #2c2c2e;
-            }
-            QHeaderView::section {
-                background-color: #2c2c2e;
-                color: #ffffff;
-                border: none;
-                padding: 12px;
-                font-weight: 600;
-                font-size: 12px;
-                border-radius: 4px;
-            }
-            QTableWidget::item:selected {
-                background-color: transparent;
-            }
-        """)
+        # Don't set hardcoded table style - will be set by theme
         
         # Set column widths for better proportions
         self.info_table.setColumnWidth(0, 280)

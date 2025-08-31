@@ -92,6 +92,9 @@ class BatteryPopup(QWidget):
                     padding: 0px;
                     margin: 0px;
                 }
+                QLabel[objectName="battery_state_label"] {
+                    color: #6c757d;
+                }
                 QSlider:horizontal {
                     background: transparent;
                     min-height: 20px;
@@ -238,11 +241,12 @@ class BatteryPopup(QWidget):
         
         # Battery state on separate line (smaller text, dimmed)
         self.battery_state_label = QLabel("Not Charging")
+        self.battery_state_label.setObjectName("battery_state_label")
         self.battery_state_label.setAlignment(Qt.AlignLeft)
         font3 = QFont()
         font3.setPointSize(9)  # Even smaller font
         self.battery_state_label.setFont(font3)
-        self.battery_state_label.setStyleSheet("color: #8e8e93;")  # Dimmed text
+        # Don't set hardcoded style - will be set by theme
         status_layout.addWidget(self.battery_state_label)
         
         # Small spacing before progress bar
@@ -254,21 +258,7 @@ class BatteryPopup(QWidget):
         self.battery_progress.setMaximum(100)
         self.battery_progress.setFixedHeight(8)
         self.battery_progress.setTextVisible(False)
-        # Force style refresh
-        self.battery_progress.setStyleSheet("""
-            QProgressBar {
-                border: none;
-                border-radius: 4px;
-                background-color: #2c2c2e;
-                height: 8px;
-            }
-            QProgressBar::chunk {
-                background-color: #30d158;
-                border-radius: 4px;
-                margin: 0px;
-                border: none;
-            }
-        """)
+        # Don't set hardcoded progress bar style - will be set by theme
         status_layout.addWidget(self.battery_progress)
         
         main_layout.addLayout(status_layout)
