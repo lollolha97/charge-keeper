@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QProgressBar, QFrame, QGraphicsDropShadowEffect, QApplication
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent
-from PyQt5.QtGui import QFont, QColor, QPainterPath, QRegion, QPainter
+from PyQt5.QtGui import QFont, QColor, QPainterPath, QRegion
 
 from src.core.battery_manager import BatteryManager, BatteryInfo
 
@@ -129,7 +129,7 @@ class BatteryPopup(QWidget):
                     text-align: center;
                 }
                 QProgressBar::chunk {
-                    background-color: #28a745;
+                    background-color: #007aff;
                     border-radius: 3px;
                     margin: 0px;
                 }
@@ -184,7 +184,7 @@ class BatteryPopup(QWidget):
                 text-align: center;
             }
             QProgressBar::chunk {
-                background-color: #30d158;
+                background-color: #007aff;
                 border-radius: 4px;
                 margin: 0px;
             }
@@ -394,55 +394,13 @@ class BatteryPopup(QWidget):
     
     def _update_progress_bar_color(self, battery_info: BatteryInfo):
         """Update progress bar color based on battery state and level."""
-        percentage = battery_info.percentage or 0
-        state = battery_info.state.lower() if battery_info.state else ""
-        
-        # Removed debug prints for production
-        
-        # Determine color based on state and percentage
-        if state == "charging":
-            # Charging: Blue/cyan colors
-            if percentage >= 80:
-                color = "#007aff"  # Blue
-            elif percentage >= 50:
-                color = "#5ac8fa"  # Light blue
-            else:
-                color = "#64d2ff"  # Cyan
-        elif percentage <= 20:
-            # Low battery: Red
-            color = "#ff453a"
-        elif percentage <= 50:
-            # Medium battery: Orange/Yellow
-            color = "#ff9f0a"
-        else:
-            # Good battery: Green
-            color = "#30d158"
-        
-        # Get current theme to set appropriate background
-        background_color = "#ffffff" if hasattr(self, '_current_theme') and self._current_theme == 'light' else "#2c2c2e"
-        
-        # Apply the color to progress bar
-        self.battery_progress.setStyleSheet(f"""
-            QProgressBar {{
-                border: none;
-                border-radius: 4px;
-                background-color: {background_color};
-                height: 8px;
-            }}
-            QProgressBar::chunk {{
-                background-color: {color};
-                border-radius: 4px;
-                margin: 0px;
-                border: none;
-            }}
-        """)
+        # Don't override theme styles - just update the progress value
+        # The color will be handled by the theme CSS
+        pass
     
     def paintEvent(self, event):
         """Custom paint event to prevent text overlapping."""
-        # Clear the widget completely before repainting
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor(28, 28, 30))  # Fill with background color
-        painter.end()
+        # Let the theme handle the background color - don't override it
         super().paintEvent(event)
     
     def showEvent(self, event):
