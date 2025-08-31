@@ -45,16 +45,26 @@ class TrayIcon(QSystemTrayIcon):
         """Setup icon from file or create default battery icon."""
         try:
             import os
-            icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
-            if os.path.exists(icon_path):
-                icon = QIcon(icon_path)
-                if not icon.isNull():
-                    self.setIcon(icon)
-                    return
-        except Exception:
+            # Try multiple possible icon paths
+            possible_paths = [
+                "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png",
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"))
+            ]
+            
+            for icon_path in possible_paths:
+                if os.path.exists(icon_path):
+                    icon = QIcon(icon_path)
+                    if not icon.isNull():
+                        self.setIcon(icon)
+                        print(f"System tray icon loaded from: {icon_path}")
+                        return
+        except Exception as e:
+            print(f"Warning: Could not set system tray icon: {e}")
             pass
         
         # Fallback to default battery icon
+        print("Using fallback battery icon")
         self._setup_default_icon()
     
     def _setup_default_icon(self):

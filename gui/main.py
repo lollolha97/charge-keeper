@@ -57,11 +57,22 @@ def main():
         
         # Set application icon globally
         try:
-            icon_path = os.path.join(os.path.dirname(__file__), '..', 'charge-keeper.png')
-            icon_path = os.path.abspath(icon_path)
-            if os.path.exists(icon_path):
-                app.setWindowIcon(QIcon(icon_path))
-        except:
+            # Try multiple possible icon paths
+            possible_paths = [
+                "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png",
+                os.path.join(os.path.dirname(__file__), '..', 'charge-keeper.png'),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'charge-keeper.png'))
+            ]
+            
+            for icon_path in possible_paths:
+                if os.path.exists(icon_path):
+                    icon = QIcon(icon_path)
+                    if not icon.isNull():
+                        app.setWindowIcon(icon)
+                        print(f"Global application icon set from: {icon_path}")
+                        break
+        except Exception as e:
+            print(f"Warning: Could not set application icon: {e}")
             pass
             
         # Store reference to prevent garbage collection

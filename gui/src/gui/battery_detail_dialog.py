@@ -35,9 +35,22 @@ class BatteryDetailDialog(QDialog):
         
         # Set window icon
         try:
-            icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
-            self.setWindowIcon(QIcon(icon_path))
-        except:
+            import os
+            # Try multiple possible icon paths
+            possible_paths = [
+                "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png",
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"))
+            ]
+            
+            for icon_path in possible_paths:
+                if os.path.exists(icon_path):
+                    icon = QIcon(icon_path)
+                    if not icon.isNull():
+                        self.setWindowIcon(icon)
+                        break
+        except Exception as e:
+            print(f"Warning: Could not set window icon: {e}")
             pass  # If icon file not found, continue without it
         
         # Center on screen
