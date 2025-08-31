@@ -353,8 +353,8 @@ class SystemTrayApp:
     def _on_settings_changed(self):
         """Handle settings changes."""
         try:
-            # Update refresh interval with delay to prevent Qt conflicts
-            QTimer.singleShot(100, self._update_refresh_interval)
+            # Update refresh interval directly without QTimer to avoid threading issues
+            self._update_refresh_interval()
         except Exception as e:
             print(f"Error updating settings: {e}")
     

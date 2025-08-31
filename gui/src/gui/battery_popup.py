@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QSlider, QLabel, 
     QPushButton, QProgressBar, QFrame, QGraphicsDropShadowEffect, QApplication
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent
 from PyQt5.QtGui import QFont, QColor, QPainterPath, QRegion, QPainter
 
 from src.core.battery_manager import BatteryManager, BatteryInfo
@@ -275,16 +275,16 @@ class BatteryPopup(QWidget):
         if result.success:
             print(f"Threshold set to {threshold}%")
             # Don't close popup immediately, let user see the result
-            QTimer.singleShot(1000, self.hide)  # Hide after 1 second
+            self.hide()  # Hide immediately to avoid QTimer issues
         else:
             print(f"Failed to set threshold: {result.error_message}")
             # Show error briefly then hide
-            QTimer.singleShot(2000, self.hide)  # Hide after 2 seconds on error
+            self.hide()  # Hide immediately to avoid QTimer issues
     
     
     def _close_popup(self):
-        """Hide popup with a slight delay."""
-        QTimer.singleShot(500, self.hide)  # Hide after 500ms instead of close
+        """Hide popup immediately."""
+        self.hide()  # Hide immediately to avoid QTimer issues
     
     def refresh_battery_info(self):
         """Refresh battery information."""
