@@ -45,32 +45,15 @@ class TrayIcon(QSystemTrayIcon):
         """Setup icon from file or create default battery icon."""
         import os
         
-        # Try ICO format first (best system tray compatibility)
-        ico_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.ico"
-        if os.path.exists(ico_path):
-            icon = QIcon(ico_path)
+        # Use main charge-keeper PNG icon
+        icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
+        if os.path.exists(icon_path):
+            icon = QIcon(icon_path)
             if not icon.isNull():
                 self.setIcon(icon)
                 return
         
-        # Fallback to high-quality small PNGs
-        for size in [22, 24, 16, 32]:
-            icon_path = f"/home/sang/Developments/tuf-charge-keeper/charge-keeper-{size}.png"
-            if os.path.exists(icon_path):
-                icon = QIcon(icon_path)
-                if not icon.isNull():
-                    self.setIcon(icon)
-                    return
-                    
-        # Last resort: original PNG
-        original_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png"
-        if os.path.exists(original_path):
-            icon = QIcon(original_path)
-            if not icon.isNull():
-                self.setIcon(icon)
-                return
-        
-        # If all else fails, use default battery icon
+        # If main icon doesn't exist, use default battery icon
         self._setup_default_icon()
     
     def _setup_default_icon(self):
