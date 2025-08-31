@@ -72,6 +72,9 @@ class BatteryPopup(QWidget):
     
     def apply_theme(self, theme='dark'):
         """Apply theme to battery popup."""
+        # Store current theme for progress bar updates
+        self._current_theme = theme
+        
         if theme == 'light':
             self.setStyleSheet("""
                 BatteryPopup {
@@ -405,12 +408,15 @@ class BatteryPopup(QWidget):
             # Good battery: Green
             color = "#30d158"
         
+        # Get current theme to set appropriate background
+        background_color = "#f0f0f0" if hasattr(self, '_current_theme') and self._current_theme == 'light' else "#2c2c2e"
+        
         # Apply the color to progress bar
         self.battery_progress.setStyleSheet(f"""
             QProgressBar {{
                 border: none;
                 border-radius: 4px;
-                background-color: #2c2c2e;
+                background-color: {background_color};
                 height: 8px;
             }}
             QProgressBar::chunk {{

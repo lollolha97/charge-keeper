@@ -327,6 +327,9 @@ class SystemTrayApp:
         """Show battery detail dialog."""
         if self.detail_dialog is None:
             self.detail_dialog = BatteryDetailDialog(self.battery_manager)
+            # Apply current theme to detail dialog
+            current_theme = self.config_manager.get('theme', 'dark')
+            self.detail_dialog.apply_theme(current_theme)
         
         # If dialog is already visible, just bring it to front
         if self.detail_dialog.isVisible():
@@ -436,7 +439,7 @@ class SystemTrayApp:
                 self.battery_popup.apply_theme(theme)
             
             # Apply theme to detail dialog if it exists
-            if self.detail_dialog and hasattr(self.detail_dialog, 'apply_theme'):
+            if self.detail_dialog:
                 self.detail_dialog.apply_theme(theme)
                 
             # Settings dialog will apply theme when opened next time

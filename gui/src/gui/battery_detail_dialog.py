@@ -46,39 +46,8 @@ class BatteryDetailDialog(QDialog):
         y = (screen.height() - self.height()) // 2
         self.move(x, y)
         
-        # Modern dark styling
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #1c1c1e;
-                border-radius: 12px;
-            }
-            QLabel {
-                color: #ffffff;
-                background: transparent;
-                border: none;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            }
-            QFrame {
-                background-color: #2c2c2e;
-                border-radius: 8px;
-                border: none;
-            }
-            QPushButton {
-                background-color: #007aff;
-                color: #ffffff;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-size: 13px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background-color: #0051d5;
-            }
-            QPushButton:pressed {
-                background-color: #003d82;
-            }
-        """)
+        # Apply default dark theme
+        self.apply_theme('dark')
         
         # Add shadow effect
         shadow = QGraphicsDropShadowEffect()
@@ -87,6 +56,124 @@ class BatteryDetailDialog(QDialog):
         shadow.setYOffset(10)
         shadow.setColor(QColor(0, 0, 0, 150))
         self.setGraphicsEffect(shadow)
+    
+    def apply_theme(self, theme='dark'):
+        """Apply theme to battery detail dialog."""
+        if theme == 'light':
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                }
+                QLabel {
+                    color: #000000;
+                    background: transparent;
+                    border: none;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                QFrame {
+                    background-color: #f8f8f8;
+                    border-radius: 8px;
+                    border: 1px solid #e0e0e0;
+                }
+                QPushButton {
+                    background-color: #007aff;
+                    color: #ffffff;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 8px 16px;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    background-color: #0051d5;
+                }
+                QPushButton:pressed {
+                    background-color: #003d82;
+                }
+                QTableWidget {
+                    background-color: #ffffff;
+                    color: #000000;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 6px;
+                    gridline-color: #e0e0e0;
+                }
+                QTableWidget::item {
+                    background-color: #ffffff;
+                    color: #000000;
+                    border: none;
+                    padding: 8px;
+                }
+                QTableWidget::item:selected {
+                    background-color: #007aff;
+                    color: #ffffff;
+                }
+                QHeaderView::section {
+                    background-color: #f0f0f0;
+                    color: #000000;
+                    border: 1px solid #e0e0e0;
+                    padding: 8px;
+                    font-weight: bold;
+                }
+            """)
+        else:
+            # Dark theme
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #1c1c1e;
+                    border-radius: 12px;
+                }
+                QLabel {
+                    color: #ffffff;
+                    background: transparent;
+                    border: none;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                QFrame {
+                    background-color: #2c2c2e;
+                    border-radius: 8px;
+                    border: none;
+                }
+                QPushButton {
+                    background-color: #007aff;
+                    color: #ffffff;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 8px 16px;
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    background-color: #0051d5;
+                }
+                QPushButton:pressed {
+                    background-color: #003d82;
+                }
+                QTableWidget {
+                    background-color: #2c2c2e;
+                    color: #ffffff;
+                    border: 1px solid #3a3a3c;
+                    border-radius: 6px;
+                    gridline-color: #3a3a3c;
+                }
+                QTableWidget::item {
+                    background-color: #2c2c2e;
+                    color: #ffffff;
+                    border: none;
+                    padding: 8px;
+                }
+                QTableWidget::item:selected {
+                    background-color: #007aff;
+                    color: #ffffff;
+                }
+                QHeaderView::section {
+                    background-color: #3a3a3c;
+                    color: #ffffff;
+                    border: 1px solid #48484a;
+                    padding: 8px;
+                    font-weight: bold;
+                }
+            """)
     
     def _setup_ui(self):
         """Setup the UI layout with categorized sections."""
