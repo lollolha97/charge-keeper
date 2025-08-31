@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    purge)
+        # Remove backup directory and all data
+        rm -rf /var/lib/a14-charge-keeper
+        echo "All a14-charge-keeper data has been removed."
+        ;;
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        # Keep backup directory for potential reinstall
+        echo "a14-charge-keeper has been removed. Backup files preserved."
+        ;;
+esac
+
+#DEBHELPER#

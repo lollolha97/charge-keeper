@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Important** : Upadte Update.md wheh finished the major update.
+
 ## Project Overview
 
 This is a lightweight shell script project for ASUS TUF A14 battery charge threshold management on Ubuntu 24.04 LTS. The project uses kernel sysfs interfaces (`/sys/class/power_supply/*/charge_control_end_threshold`) to limit battery charging without external dependencies.

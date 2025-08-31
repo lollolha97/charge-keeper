@@ -1,0 +1,19 @@
+Package: a14-charge-keeper
+Version: 0.3.0
+Section: utils
+Priority: optional
+Architecture: all
+Depends: bash (>= 4.0), upower, systemd
+Maintainer: A14 Charge Keeper Team <noreply@example.com>
+Description: Battery charge threshold manager for Linux laptops
+ A lightweight command-line tool for managing battery charging limits
+ on supported laptops including ASUS TUF A14, ThinkPad, and other models
+ that support Linux kernel sysfs battery control interfaces.
+ .
+ Features:
+  * Set battery charge end threshold (20-100%)
+  * Support for ThinkPad charge start threshold
+  * Automatic reapplication after boot/resume
+  * Hardware compatibility checking
+  * Backup and rollback functionality
+Homepage: https://github.com/example/a14-charge-keeper

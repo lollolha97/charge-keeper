@@ -1,0 +1,29 @@
+# A14 Charge Keeper
+
+A lightweight command-line tool for managing battery charging limits on supported Linux laptops.
+
+## Supported Hardware
+- ASUS TUF A14 and compatible models
+- ThinkPad laptops with battery threshold support
+- Other laptops with Linux kernel sysfs battery control
+
+## Quick Start
+1. Check hardware support: `check-support`
+2. Set battery limit: `sudo a14-charge-keeper set 80`
+3. Make permanent: `sudo a14-charge-keeper persist 80`
+
+## Commands
+- `set <20-100>`: Set charge threshold
+- `status`: Show current status
+- `persist <20-100>`: Enable auto-reapply on boot/resume
+- `clear`: Reset to 100% and disable auto-reapply
+- `verify <20-100>`: Verify current setting
+
+## Environment Variables
+- `BAT_NAME`: Override battery device name (default: BAT0)
+
+## Version
+0.3.0
+
+## License
+MIT License

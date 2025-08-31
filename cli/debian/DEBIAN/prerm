@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+# Stop and disable service if it exists
+if systemctl is-enabled a14-charge-keeper.service >/dev/null 2>&1; then
+    echo "Stopping a14-charge-keeper service..."
+    systemctl disable --now a14-charge-keeper.service >/dev/null 2>&1 || true
+fi
+
+# Remove systemd service file
+rm -f /etc/systemd/system/a14-charge-keeper.service
+
+# Remove sleep hook
+rm -f /lib/systemd/system-sleep/a14-charge-keeper
+
+# Reload systemd
+systemctl daemon-reload >/dev/null 2>&1 || true
+
+echo "a14-charge-keeper services have been stopped and removed."
+
+#DEBHELPER#

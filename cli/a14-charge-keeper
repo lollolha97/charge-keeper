@@ -1,0 +1,329 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly VERSION="0.3.0"
+BAT_DIR="/sys/class/power_supply"
+BAT_NAME="${BAT_NAME:-BAT0}"
+END_FILE="$BAT_DIR/$BAT_NAME/charge_control_end_threshold"
+START_FILE="$BAT_DIR/$BAT_NAME/charge_control_start_threshold"
+SERVICE="a14-charge-keeper.service"
+SLEEP_HOOK="/lib/systemd/system-sleep/a14-charge-keeper"
+BACKUP_DIR="/var/lib/a14-charge-keeper"
+LOCK_FILE="/var/lock/a14-charge-keeper.lock"
+
+usage() {
+  cat <<USAGE
+A14 Charge Keeper v$VERSION
+
+사용법:
+  a14-charge-keeper set <20-100>   # 종료 임계값을 퍼센트로 설정(예: 60)
+  a14-charge-keeper status          # 현재 임계값/배터리 상태 표시
+  a14-charge-keeper persist <20-100># 부팅/절전 복원 자동적용 구성
+  a14-charge-keeper clear           # 임계값 100%로 복원 + 자동적용 해제
+  a14-charge-keeper uninstall       # 설치물(서비스/훅) 제거
+  a14-charge-keeper verify <20-100> # 설정값 검증 (테스트용)
+USAGE
+}
+
+log_message() {
+  local level="$1"
+  shift
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*" >&2
+}
+
+acquire_lock() {
+  if ! mkdir "$LOCK_FILE" 2>/dev/null; then
+    log_message "ERROR" "다른 인스턴스가 실행 중입니다. 잠시 후 다시 시도하세요."
+    exit 4
+  fi
+  trap 'rm -rf "$LOCK_FILE"' EXIT
+}
+
+require_root() {
+  if [[ $EUID -ne 0 ]]; then
+    log_message "ERROR" "루트 권한이 필요합니다. 'sudo'로 다시 실행하세요."
+    exit 1
+  fi
+}
+
+assert_supported() {
+  if [[ ! -e "$END_FILE" ]]; then
+    log_message "ERROR" "배터리 충전 제어가 지원되지 않습니다: $END_FILE"
+    log_message "INFO" "BAT_NAME이 다르다면 'BAT_NAME=BAT1 a14-charge-keeper ...' 식으로 지정하세요."
+    log_message "INFO" "먼저 'check-support.sh'로 하드웨어 지원 여부를 확인하세요."
+    exit 2
+  fi
+  
+  if [[ ! -r "$END_FILE" ]]; then
+    log_message "ERROR" "배터리 파일 읽기 권한이 없습니다: $END_FILE"
+    exit 2
+  fi
+}
+
+validate_input() {
+  local val="$1"
+  if ! [[ "$val" =~ ^[0-9]+$ ]]; then
+    log_message "ERROR" "숫자만 입력 가능합니다: $val"
+    exit 3
+  fi
+  
+  if (( val < 20 || val > 100 )); then
+    log_message "ERROR" "20~100 사이의 값만 허용됩니다: $val"
+    exit 3
+  fi
+}
+
+backup_current_value() {
+  mkdir -p "$BACKUP_DIR"
+  local backup_file="$BACKUP_DIR/threshold_backup_$(date +%s)"
+  
+  if ! cat "$END_FILE" > "$backup_file" 2>/dev/null; then
+    log_message "ERROR" "현재 값 백업 실패"
+    return 1
+  fi
+  
+  echo "$backup_file"
+}
+
+verify_threshold() {
+  local expected="$1"
+  
+  sleep 0.5  # 커널이 값을 반영할 시간
+  
+  local actual
+  actual=$(cat "$END_FILE" 2>/dev/null || echo "ERROR")
+  
+  if [[ "$actual" == "ERROR" ]]; then
+    log_message "ERROR" "임계값 읽기 실패"
+    return 1
+  fi
+  
+  if [[ "$actual" == "$expected" ]]; then
+    log_message "INFO" "sysfs 설정 확인됨: ${expected}%"
+    return 0
+  else
+    log_message "ERROR" "sysfs 값 불일치: 설정 ${expected}%, 실제 ${actual}%"
+    return 1
+  fi
+}
+
+check_hardware_conflicts() {
+  # TLP 충돌 확인
+  if systemctl is-active --quiet tlp 2>/dev/null; then
+    log_message "WARN" "TLP가 실행 중입니다. 배터리 설정이 충돌할 수 있습니다."
+  fi
+  
+  # asusctl 충돌 확인
+  if command -v asusctl >/dev/null 2>&1; then
+    log_message "WARN" "asusctl이 설치되어 있습니다. 설정이 충돌할 수 있습니다."
+  fi
+  
+  # 쓰기 권한 확인
+  if [[ ! -w "$END_FILE" ]]; then
+    log_message "ERROR" "배터리 파일 쓰기 권한이 없습니다: $END_FILE"
+    exit 2
+  fi
+}
+
+safe_set_threshold() {
+  local new_value="$1"
+  local backup_file
+  
+  # 하드웨어 충돌 검사
+  check_hardware_conflicts
+  
+  # 현재 값 백업
+  if ! backup_file=$(backup_current_value); then
+    log_message "ERROR" "백업 실패로 인해 설정을 중단합니다."
+    return 1
+  fi
+  
+  log_message "INFO" "현재 값 백업됨: $backup_file"
+  
+  # 새 값 설정
+  if ! echo "$new_value" > "$END_FILE" 2>/dev/null; then
+    log_message "ERROR" "임계값 쓰기 실패"
+    return 1
+  fi
+  
+  # 검증
+  if ! verify_threshold "$new_value"; then
+    log_message "WARN" "롤백 시도 중..."
+    if [[ -f "$backup_file" ]] && cat "$backup_file" > "$END_FILE" 2>/dev/null; then
+      log_message "INFO" "롤백 완료"
+    else
+      log_message "ERROR" "롤백 실패! 수동으로 복구해야 합니다."
+    fi
+    return 1
+  fi
+  
+  log_message "INFO" "임계값 설정 완료: ${new_value}%"
+  return 0
+}
+
+set_limit() {
+  require_root
+  assert_supported
+  acquire_lock
+  
+  local val="$1"
+  validate_input "$val"
+  
+  if ! safe_set_threshold "$val"; then
+    log_message "ERROR" "임계값 설정 실패"
+    exit 5
+  fi
+  
+  echo "[✅] charge_control_end_threshold = $val 적용 완료"
+}
+
+show_status() {
+  assert_supported
+  
+  local end_threshold; end_threshold=$(cat "$END_FILE" 2>/dev/null || echo "읽기 실패" )
+  echo "Device : $BAT_NAME"
+  echo "충전 종료: ${end_threshold}%"
+  
+  # 충전 시작 임계값 (지원하는 모델만)
+  if [[ -e "$START_FILE" ]]; then
+    local start_threshold; start_threshold=$(cat "$START_FILE" 2>/dev/null || echo "읽기 실패")
+    echo "충전 시작: ${start_threshold}% (ThinkPad/Lenovo 등 지원)"
+  fi
+  
+  # 백업 파일 정보
+  if [[ -d "$BACKUP_DIR" ]]; then
+    local backup_count
+    backup_count=$(find "$BACKUP_DIR" -name "threshold_backup_*" 2>/dev/null | wc -l)
+    echo "백업 파일: ${backup_count}개"
+  fi
+  
+  # upower 정보 (있는 경우)
+  if command -v upower >/dev/null 2>&1; then
+    echo
+    upower -i "$(upower -e | grep -E "BAT[0-9]" | head -n1)" 2>/dev/null | sed -n '1,25p' || true
+  fi
+}
+
+install_persist() {
+  local val="$1"
+  validate_input "$val"
+  
+  # 먼저 임계값 설정
+  set_limit "$val"
+  
+  # systemd 서비스 생성 (검증 로직 포함)
+  cat >/etc/systemd/system/$SERVICE <<UNIT
+[Unit]
+Description=Set ASUS A14 charge threshold at boot
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '
+  END_FILE="$BAT_DIR/$BAT_NAME/charge_control_end_threshold"
+  if [[ -w "\$END_FILE" ]]; then
+    echo $val > "\$END_FILE"
+    sleep 2
+    ACTUAL=\$(cat "\$END_FILE" 2>/dev/null || echo "ERROR")
+    if [[ "\$ACTUAL" == "$val" ]]; then
+      logger "a14-charge-keeper: 부팅 시 임계값 $val% 설정 완료"
+    else
+      logger "a14-charge-keeper: 부팅 시 임계값 설정 실패 (예상: $val%, 실제: \$ACTUAL%)"
+      exit 1
+    fi
+  else
+    logger "a14-charge-keeper: 배터리 제어 파일에 쓰기 권한 없음"
+    exit 1
+  fi
+'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+  systemctl daemon-reload
+  systemctl enable --now "$SERVICE"
+  
+  # 절전 복원 훅
+  cat >"$SLEEP_HOOK" <<HOOK
+#!/bin/bash
+case "\$1" in
+  post|resume|thaw)
+    BAT_NAME="\${BAT_NAME:-BAT0}"
+    END_FILE="/sys/class/power_supply/\$BAT_NAME/charge_control_end_threshold"
+    if [[ -w "\$END_FILE" ]]; then
+      echo "$val" > "\$END_FILE" 2>/dev/null && \\
+        logger "a14-charge-keeper: 절전 복원 시 배터리 제한 ${val}% 적용 (\$BAT_NAME)"
+    fi
+  ;;
+esac
+HOOK
+  chmod +x "$SLEEP_HOOK"
+  
+  echo "[✅] 부팅/절전 후 자동 재적용 구성 완료 (현재 값: $val%)"
+}
+
+clear_limit() {
+  require_root
+  assert_supported
+  acquire_lock
+  
+  if ! safe_set_threshold "100"; then
+    log_message "ERROR" "임계값 100% 복원 실패"
+    exit 5
+  fi
+  
+  systemctl disable --now "$SERVICE" 2>/dev/null || true
+  rm -f "/etc/systemd/system/$SERVICE"
+  rm -f "$SLEEP_HOOK"
+  systemctl daemon-reload || true
+  
+  echo "[✅] 임계값을 100%로 복원하고 자동 적용을 해제했습니다."
+}
+
+uninstall_all() {
+  clear_limit
+  rm -rf "$BACKUP_DIR"
+  rm -f "$0"
+  echo "[✅] a14-charge-keeper를 완전히 제거했습니다."
+}
+
+verify_command() {
+  assert_supported
+  local val="$1"
+  validate_input "$val"
+  
+  local actual
+  actual=$(cat "$END_FILE" 2>/dev/null || echo "ERROR")
+  
+  echo "🔍 sysfs 값 확인: ${actual}%"
+  
+  if [[ "$actual" == "$val" ]]; then
+    echo "[✅] sysfs 값이 일치합니다"
+  else
+    echo "[❌] sysfs 값이 예상과 다릅니다 (예상: ${val}%)"
+    exit 1
+  fi
+}
+
+# 메인 로직
+cmd="${1:-}"
+case "$cmd" in
+  set)
+    shift; : "${1:?값(20-100)가 필요합니다}"; set_limit "$1" ;;
+  status)
+    show_status ;;
+  persist)
+    shift; : "${1:?값(20-100)가 필요합니다}"; require_root; install_persist "$1" ;;
+  clear)
+    clear_limit ;;
+  uninstall)
+    uninstall_all ;;
+  verify)
+    shift; : "${1:?값(20-100)가 필요합니다}"; verify_command "$1" ;;
+  -h|--help|help|"")
+    usage ;;
+  *)
+    echo "알 수 없는 명령: $cmd" >&2; usage; exit 64 ;;
+esac
