@@ -336,7 +336,11 @@ class SystemTrayApp:
     def _show_settings(self):
         """Show settings dialog."""
         if self.settings_dialog is None:
-            self.settings_dialog = SettingsDialog(self.config_manager)
+            # Create dialog with main window as parent if available
+            parent = None
+            if hasattr(QApplication.instance(), 'activeWindow'):
+                parent = QApplication.instance().activeWindow()
+            self.settings_dialog = SettingsDialog(self.config_manager, parent)
             self.settings_dialog.settings_changed.connect(self._on_settings_changed)
         
         # If dialog is already visible, just bring it to front
@@ -414,19 +418,42 @@ class SystemTrayApp:
         pass  # Nothing special needed when popup closes
     
     def _quit_application(self):
-        """Quit the application."""
-        # Close popup if open
-        if self.battery_popup.isVisible():
-            self.battery_popup.close()
-        
-        self.stop()
-        if QApplication.instance():
-            QApplication.instance().quit()
+        """Quit the application with proper cleanup."""
+        try:
+            # Close popup if open
+            if self.battery_popup and self.battery_popup.isVisible():
+                self.battery_popup.close()
+            
+            # Close settings dialog if open
+            if self.settings_dialog and self.settings_dialog.isVisible():
+                self.settings_dialog.close()
+                
+            # Close detail dialog if open
+            if self.detail_dialog and self.detail_dialog.isVisible():
+                self.detail_dialog.close()
+            
+            # Stop the tray app
+            self.stop()
+            
+            # Process pending events before quitting
+            app = QApplication.instance()
+            if app:
+                app.processEvents()
+                app.quit()
+        except Exception as e:
+            print(f"Error during quit: {e}")
+            # Force quit if there's an error
+            if QApplication.instance():
+                QApplication.instance().quit()
 
 
 def main():
     """Main entry point for the system tray application."""
-    app = QApplication(sys.argv)
+    # Use existing QApplication instance to prevent QBasicTimer issues
+    app = QApplication.instance()
+    if app is None:
+        print("Error: No QApplication instance found. Create QApplication before calling main().")
+        return 1
     
     # Check system tray availability
     if not QSystemTrayIcon.isSystemTrayAvailable():
@@ -441,7 +468,7 @@ def main():
         print(f"Failed to start application: {result.error_message}")
         return 1
     
-    # Run application
+    # Run application using existing instance
     return app.exec_()
 
 

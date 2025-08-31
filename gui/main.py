@@ -42,10 +42,14 @@ def main():
         from PyQt5.QtGui import QIcon
         from gui.system_tray import main as tray_main
         
-        # Create application with proper Qt attributes for root
+        # Create application as global to prevent QBasicTimer issues
+        global app
         app = QApplication.instance()
         if app is None:
             app = QApplication(sys.argv)
+            
+        # Set proper exit behavior for Qt application
+        app.setQuitOnLastWindowClosed(False)
         
         # Set application icon globally
         try:
@@ -56,7 +60,14 @@ def main():
         except:
             pass
             
-        return tray_main()
+        # Store reference to prevent garbage collection
+        result = tray_main()
+        
+        # Explicit cleanup to prevent segfault
+        if hasattr(app, 'processEvents'):
+            app.processEvents()
+            
+        return result
     except ImportError as e:
         print(f"Import error: {e}")
         print("Make sure PyQt5 is installed: pip install PyQt5")
