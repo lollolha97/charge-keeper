@@ -70,6 +70,24 @@ sudo a14-charge-keeper uninstall
 - Hardware conflict warnings (TLP, asusctl)
 - Input validation (20-100% range only)
 
+## GUI Application
+
+### Installation
+```bash
+# Install GUI package (requires CLI package as dependency)
+sudo dpkg -i gui/a14-charge-keeper-gui_1.0.0_all.deb
+
+# Launch from applications menu or command line
+a14-charge-keeper-gui
+```
+
+### GUI Features
+- **System Tray Integration**: Persistent tray icon with right-click menu
+- **Battery Threshold Control**: Interactive slider with +/- buttons
+- **Settings Dialog**: Theme selection, refresh interval, notifications
+- **Battery Details**: Real-time status display with Korean translations
+- **PolicyKit Integration**: Automatic privilege escalation for threshold changes
+
 ## Testing Commands
 
 ### Hardware Testing
@@ -108,3 +126,7 @@ Built package available: `cli/a14-charge-keeper_0.3.0_all.deb`
 - **ThinkPad/Lenovo**: Often support both start and end thresholds  
 - **Other brands**: Varies by model, use `check-support.sh` to verify
 - All operations work through standard Linux kernel sysfs interfaces
+
+## Development
+
+**Note**: Development files (tests, dev documentation, additional icons) are maintained only in the `dev` branch. The `master` branch contains only production-ready code and assets for clean releases.
