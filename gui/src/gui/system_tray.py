@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QApplication, QSystemTrayIcon, QMenu, QAction, 
     QWidget, QVBoxLayout, QLabel, QSlider, QPushButton
 )
-from PyQt5.QtCore import QTimer, pyqtSignal
+from PyQt5.QtCore import QTimer, pyqtSignal, QThread
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QBrush, QPen, QColor
 
 from src.core.battery_manager import BatteryManager, BatteryInfo
@@ -264,11 +264,17 @@ class SystemTrayApp:
         # Show tray icon
         self.tray_icon.show()
         
-        # Create and start refresh timer in main thread
+        # Create and start refresh timer ensuring it's in main thread
         if self.refresh_interval > 0:
-            self.refresh_timer = QTimer()
-            self.refresh_timer.timeout.connect(self.refresh_battery_status)
-            self.refresh_timer.start(self.refresh_interval)
+            # Ensure we're in the main thread before creating QTimer
+            if QThread.currentThread() == QApplication.instance().thread():
+                self.refresh_timer = QTimer()
+                self.refresh_timer.timeout.connect(self.refresh_battery_status)
+                # Move timer to main thread explicitly
+                self.refresh_timer.moveToThread(QApplication.instance().thread())
+                self.refresh_timer.start(self.refresh_interval)
+            else:
+                print("Warning: Not in main thread, timer creation skipped")
         
         # Initial status update
         self.refresh_battery_status()
@@ -365,13 +371,21 @@ class SystemTrayApp:
     def _restart_timer(self):
         """Restart the refresh timer in main thread context."""
         try:
+            # Stop existing timer
             if self.refresh_timer and self.refresh_timer.isActive():
                 self.refresh_timer.stop()
+            
             if self.refresh_interval > 0:
-                if not self.refresh_timer:
-                    self.refresh_timer = QTimer()
-                    self.refresh_timer.timeout.connect(self.refresh_battery_status)
-                self.refresh_timer.start(self.refresh_interval)
+                # Ensure we're in main thread
+                if QThread.currentThread() == QApplication.instance().thread():
+                    if not self.refresh_timer:
+                        self.refresh_timer = QTimer()
+                        self.refresh_timer.timeout.connect(self.refresh_battery_status)
+                        # Ensure timer is bound to main thread
+                        self.refresh_timer.moveToThread(QApplication.instance().thread())
+                    self.refresh_timer.start(self.refresh_interval)
+                else:
+                    print("Warning: Cannot restart timer - not in main thread")
         except Exception as e:
             print(f"Error restarting timer: {e}")
     
