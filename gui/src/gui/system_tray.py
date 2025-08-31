@@ -241,6 +241,12 @@ class SystemTrayApp:
         self.battery_popup.apply_theme(saved_theme)
         self.battery_popup.closed.connect(self._on_popup_closed)
         
+        # Force immediate style refresh of popup
+        print(f"Force refreshing popup style for theme: {saved_theme}")
+        self.battery_popup.style().unpolish(self.battery_popup)
+        self.battery_popup.style().polish(self.battery_popup)
+        self.battery_popup.update()
+        
         # Create detail dialog for additional info
         self.detail_dialog = None
         

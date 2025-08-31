@@ -65,6 +65,7 @@ class BatteryDetailDialog(QDialog):
             self.setStyleSheet("""
                 QDialog {
                     background-color: #f8f9fa;
+                    color: #212529;
                     border-radius: 12px;
                 }
                 QLabel {
@@ -180,12 +181,28 @@ class BatteryDetailDialog(QDialog):
                 }
             """)
         
-        # Force style refresh
+        # Force complete style refresh - multiple methods to ensure it works
+        # Method 1: Unpolish/polish
         self.style().unpolish(self)
         self.style().polish(self)
-        self.update()
         
-        print(f"BatteryDetailDialog: {theme} theme stylesheet applied")
+        # Method 2: Force repaint all child widgets
+        from PyQt5.QtWidgets import QWidget as QWidgetBase
+        for child in self.findChildren(QWidgetBase):
+            child.style().unpolish(child)
+            child.style().polish(child)
+            child.update()
+        
+        # Method 3: Update this widget and table specifically
+        self.update()
+        self.repaint()
+        
+        # Method 4: Force table refresh
+        if hasattr(self, 'info_table'):
+            self.info_table.update()
+            self.info_table.repaint()
+        
+        print(f"BatteryDetailDialog: {theme} theme stylesheet applied and refreshed")
     
     def _setup_ui(self):
         """Setup the UI layout with categorized sections."""

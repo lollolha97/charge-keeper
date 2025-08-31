@@ -187,12 +187,23 @@ class BatteryPopup(QWidget):
             }
         """)
         
-        # Force style refresh
+        # Force complete style refresh - multiple methods to ensure it works
+        # Method 1: Unpolish/polish
         self.style().unpolish(self)
         self.style().polish(self)
-        self.update()
         
-        print(f"BatteryPopup: {theme} theme stylesheet applied")
+        # Method 2: Force repaint all child widgets
+        from PyQt5.QtWidgets import QWidget as QWidgetBase
+        for child in self.findChildren(QWidgetBase):
+            child.style().unpolish(child)
+            child.style().polish(child)
+            child.update()
+        
+        # Method 3: Update this widget
+        self.update()
+        self.repaint()
+        
+        print(f"BatteryPopup: {theme} theme stylesheet applied and refreshed")
     
     def _setup_ui(self):
         """Setup clean card-style UI."""
