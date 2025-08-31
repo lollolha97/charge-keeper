@@ -51,9 +51,9 @@ class BatteryPopup(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         # Don't use WA_TranslucentBackground - it makes everything transparent
         
-        # Improve rendering performance - disable double buffering issues
-        self.setAttribute(Qt.WA_OpaquePaintEvent, False)  # Allow proper transparency
-        self.setAttribute(Qt.WA_NoSystemBackground, True)  # Prevent system background interference
+        # Fix rendering issues
+        self.setAttribute(Qt.WA_OpaquePaintEvent, True)   # We handle our own painting
+        self.setAttribute(Qt.WA_NoSystemBackground, False) # Allow system background for stability
         
         # Auto-close when losing focus
         self.setAttribute(Qt.WA_ShowWithoutActivating, False)
@@ -312,14 +312,19 @@ class BatteryPopup(QWidget):
     
     def _create_rounded_mask(self):
         """Create rounded corner mask for the popup."""
-        # Create mask with proper integer coordinates
-        path = QPainterPath()
-        path.addRoundedRect(0, 0, self.width(), self.height(), 12, 12)
-        
-        # Convert to polygon with higher precision
-        polygon = path.toFillPolygon().toPolygon()
-        region = QRegion(polygon)
-        self.setMask(region)
+        try:
+            # Create mask with proper integer coordinates
+            path = QPainterPath()
+            path.addRoundedRect(0, 0, self.width(), self.height(), 12, 12)
+            
+            # Convert to polygon with higher precision
+            polygon = path.toFillPolygon().toPolygon()
+            region = QRegion(polygon)
+            self.setMask(region)
+        except Exception as e:
+            print(f"Warning: Could not create rounded mask: {e}")
+            # Fall back to rectangular mask if rounded fails
+            self.clearMask()
     
     def _on_slider_changed(self, value: int):
         """Handle slider value change."""
@@ -399,8 +404,22 @@ class BatteryPopup(QWidget):
         pass
     
     def paintEvent(self, event):
-        """Custom paint event to prevent text overlapping."""
-        # Let the theme handle the background color - don't override it
+        """Custom paint event with proper rendering."""
+        from PyQt5.QtGui import QPainter
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Get current theme colors
+        if hasattr(self, '_current_theme') and self._current_theme == 'light':
+            bg_color = QColor(248, 249, 250)  # #f8f9fa
+        else:
+            bg_color = QColor(28, 28, 30)     # #1c1c1e
+            
+        # Fill with theme appropriate background
+        painter.fillRect(self.rect(), bg_color)
+        painter.end()
+        
+        # Call parent paintEvent
         super().paintEvent(event)
     
     def showEvent(self, event):

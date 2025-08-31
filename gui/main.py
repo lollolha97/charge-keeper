@@ -31,6 +31,10 @@ def setup_qt_for_root():
         # Disable Qt's security restrictions for root
         os.environ['QT_X11_NO_MITSHM'] = '1'
         os.environ['QT_QUICK_BACKEND'] = 'software'
+        
+        # Fix rendering issues with sudo
+        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '0'
+        os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '0'
 
 def main():
     """Main entry point with error handling."""
