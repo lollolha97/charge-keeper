@@ -39,3 +39,20 @@ dist/
 CLAUDE.md
 PERFORMANCE_ANALYSIS.md
 DISTRIBUTION_TESTING_CHECKLIST.md
+
+# Debian packaging and build artifacts
+*/debian/
+*.deb
+*.buildinfo
+*.changes
+*.dsc
+*.tar.*
+*.tar.gz
+*.tar.xz
+build/
+dist/
+debian/
+packaging/
+
+# Release artifacts (keep local for building)
+releases/
