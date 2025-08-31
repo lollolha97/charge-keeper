@@ -14,7 +14,9 @@ from src.gui.simple_battery_menu import SimpleBatteryMenu
 from src.gui.battery_popup import BatteryPopup
 from src.gui.simple_context_menu import SimpleContextMenu
 from src.gui.battery_detail_dialog import BatteryDetailDialog
+from src.gui.settings_dialog import SettingsDialog
 from src.core.cli_interface import CliResult
+from src.core.config_manager import ConfigManager
 
 
 class TrayIcon(QSystemTrayIcon):
@@ -214,14 +216,18 @@ class SystemTrayApp:
             refresh_interval: Auto-refresh interval in milliseconds
         """
         self.battery_manager = battery_manager or BatteryManager()
-        self.refresh_interval = refresh_interval
+        self.config_manager = ConfigManager()
+        self.config_manager.load()
+        
+        # Use config for refresh interval if available
+        self.refresh_interval = self.config_manager.get('refresh_interval', refresh_interval // 1000) * 1000
         
         # Create tray icon
         self.tray_icon = TrayIcon()
         
         # Setup simple context menu for right-click
         self.context_menu = SimpleContextMenu(self.battery_manager)
-        self.context_menu.settings_requested.connect(self._show_popup)  # Settings will show popup
+        self.context_menu.settings_requested.connect(self._show_settings)
         self.context_menu.status_requested.connect(self._show_status)
         self.context_menu.quit_requested.connect(self._quit_application)
         
@@ -234,6 +240,9 @@ class SystemTrayApp:
         
         # Create detail dialog for additional info
         self.detail_dialog = None
+        
+        # Create settings dialog
+        self.settings_dialog = None
         
         # Connect tray activation to show popup
         self.tray_icon.activated.connect(self._on_tray_activated)
@@ -318,7 +327,32 @@ class SystemTrayApp:
         self.detail_dialog.raise_()
         self.detail_dialog.activateWindow()
     
+    def _show_settings(self):
+        """Show settings dialog."""
+        if self.settings_dialog is None:
+            self.settings_dialog = SettingsDialog(self.config_manager)
+            self.settings_dialog.settings_changed.connect(self._on_settings_changed)
+        
+        # If dialog is already visible, just bring it to front
+        if self.settings_dialog.isVisible():
+            self.settings_dialog.raise_()
+            self.settings_dialog.activateWindow()
+            return
+        
+        # Show dialog
+        self.settings_dialog.show()
+        self.settings_dialog.raise_()
+        self.settings_dialog.activateWindow()
     
+    def _on_settings_changed(self):
+        """Handle settings changes."""
+        # Update refresh interval
+        new_interval = self.config_manager.get('refresh_interval', 30) * 1000
+        if new_interval != self.refresh_interval:
+            self.refresh_interval = new_interval
+            if self.refresh_timer.isActive():
+                self.refresh_timer.stop()
+                self.refresh_timer.start(self.refresh_interval)
     
     def _on_tray_activated(self, reason):
         """Handle tray icon activation."""

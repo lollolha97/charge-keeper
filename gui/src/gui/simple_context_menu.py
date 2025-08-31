@@ -33,6 +33,11 @@ class SimpleContextMenu(QMenu):
         details_action.triggered.connect(self.status_requested.emit)
         self.addAction(details_action)
         
+        # Settings action
+        settings_action = QAction("⚙️ Settings", self)
+        settings_action.triggered.connect(self.settings_requested.emit)
+        self.addAction(settings_action)
+        
         self.addSeparator()
         
         # Quit action
