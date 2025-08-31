@@ -43,32 +43,27 @@ class TrayIcon(QSystemTrayIcon):
     
     def _setup_icon_from_file(self):
         """Setup icon from file or create default battery icon."""
-        try:
-            import os
-            # Try multiple possible icon paths, prefer smaller sizes for system tray
-            possible_paths = [
-                "/home/sang/Developments/tuf-charge-keeper/charge-keeper-22.png",
-                "/home/sang/Developments/tuf-charge-keeper/charge-keeper-32.png",
-                "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png",
-                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper-22.png"),
-                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper-32.png"),
-                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"),
-                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper-22.png"))
-            ]
-            
-            for icon_path in possible_paths:
-                if os.path.exists(icon_path):
-                    icon = QIcon(icon_path)
-                    if not icon.isNull():
-                        self.setIcon(icon)
-                        print(f"System tray icon loaded from: {icon_path}")
-                        return
-        except Exception as e:
-            print(f"Warning: Could not set system tray icon: {e}")
-            pass
+        import os
         
-        # Fallback to default battery icon
-        print("Using fallback battery icon")
+        # Force using charge-keeper icon - try most likely path first
+        icon_path = "/home/sang/Developments/tuf-charge-keeper/charge-keeper-22.png"
+        if os.path.exists(icon_path):
+            icon = QIcon(icon_path)
+            if not icon.isNull():
+                self.setIcon(icon)
+                return
+        
+        # Fallback to other sizes
+        for size in ["32", "16", ""]:  # "" means original without size suffix
+            suffix = f"-{size}" if size else ""
+            icon_path = f"/home/sang/Developments/tuf-charge-keeper/charge-keeper{suffix}.png"
+            if os.path.exists(icon_path):
+                icon = QIcon(icon_path)
+                if not icon.isNull():
+                    self.setIcon(icon)
+                    return
+        
+        # If all else fails, use default battery icon
         self._setup_default_icon()
     
     def _setup_default_icon(self):
@@ -291,6 +286,9 @@ class SystemTrayApp:
         
         # Show tray icon
         self.tray_icon.show()
+        
+        # Force icon setup after showing tray
+        self.tray_icon._setup_icon_from_file()
         
         # Create and start refresh timer ensuring it's in main thread
         if self.refresh_interval > 0:
