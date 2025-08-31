@@ -45,11 +45,15 @@ class TrayIcon(QSystemTrayIcon):
         """Setup icon from file or create default battery icon."""
         try:
             import os
-            # Try multiple possible icon paths
+            # Try multiple possible icon paths, prefer smaller sizes for system tray
             possible_paths = [
+                "/home/sang/Developments/tuf-charge-keeper/charge-keeper-22.png",
+                "/home/sang/Developments/tuf-charge-keeper/charge-keeper-32.png",
                 "/home/sang/Developments/tuf-charge-keeper/charge-keeper.png",
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper-22.png"),
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper-32.png"),
                 os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"),
-                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper.png"))
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "charge-keeper-22.png"))
             ]
             
             for icon_path in possible_paths:
