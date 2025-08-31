@@ -67,13 +67,15 @@ class BatteryPopup(QWidget):
         # Set compact size - slightly wider for better proportions
         self.setFixedSize(260, 145)
         
-        # Apply theme based on configuration
-        self.apply_theme('dark')  # Default to dark theme
+        # Don't apply default theme here - will be set by SystemTrayApp
+        # self.apply_theme('dark')  # Will be set by parent
     
     def apply_theme(self, theme='dark'):
         """Apply theme to battery popup."""
         # Store current theme for progress bar updates
         self._current_theme = theme
+        
+        print(f"BatteryPopup: Applying {theme} theme")
         
         if theme == 'light':
             self.setStyleSheet("""
@@ -187,6 +189,13 @@ class BatteryPopup(QWidget):
                 margin: 0px;
             }
         """)
+        
+        # Force style refresh
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
+        
+        print(f"BatteryPopup: {theme} theme stylesheet applied")
     
     def _setup_ui(self):
         """Setup clean card-style UI."""

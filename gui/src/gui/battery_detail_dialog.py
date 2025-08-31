@@ -46,8 +46,8 @@ class BatteryDetailDialog(QDialog):
         y = (screen.height() - self.height()) // 2
         self.move(x, y)
         
-        # Apply default dark theme
-        self.apply_theme('dark')
+        # Don't apply default theme here - will be set by SystemTrayApp
+        # self.apply_theme('dark')  # Will be set by parent
         
         # Add shadow effect
         shadow = QGraphicsDropShadowEffect()
@@ -59,6 +59,8 @@ class BatteryDetailDialog(QDialog):
     
     def apply_theme(self, theme='dark'):
         """Apply theme to battery detail dialog."""
+        print(f"BatteryDetailDialog: Applying {theme} theme")
+        
         if theme == 'light':
             self.setStyleSheet("""
                 QDialog {
@@ -181,6 +183,13 @@ class BatteryDetailDialog(QDialog):
                     font-weight: bold;
                 }
             """)
+        
+        # Force style refresh
+        self.style().unpolish(self)
+        self.style().polish(self)
+        self.update()
+        
+        print(f"BatteryDetailDialog: {theme} theme stylesheet applied")
     
     def _setup_ui(self):
         """Setup the UI layout with categorized sections."""
