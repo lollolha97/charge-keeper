@@ -46,9 +46,6 @@ def main():
         app = QApplication.instance()
         if app is None:
             app = QApplication(sys.argv)
-            # Disable problematic Qt features when running as root
-            if os.geteuid() == 0:
-                app.setAttribute(app.AA_X11InitThreads, False)
         
         # Set application icon globally
         try:
