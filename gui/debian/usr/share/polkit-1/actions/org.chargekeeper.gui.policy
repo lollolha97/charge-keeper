@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+
+<policyconfig>
+  <vendor>A14 Charge Keeper</vendor>
+  <vendor_url>https://github.com/example/a14-charge-keeper</vendor_url>
+
+  <action id="org.chargekeeper.gui.manage-battery">
+    <description>Manage battery charge thresholds</description>
+    <message>Authentication is required to modify battery charge settings</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/local/bin/a14-charge-keeper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">python3</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv2">/usr/local/share/a14-charge-keeper/gui/main.py</annotate>
+  </action>
+</policyconfig>
