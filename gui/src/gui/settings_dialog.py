@@ -50,8 +50,13 @@ class SettingsDialog(QDialog):
             y = parent_rect.y() + (parent_rect.height() - self.height()) // 2
             self.move(x, y)
         
-        # Apply dark theme (based on light theme structure)
-        self._apply_dark_theme()
+        # Apply theme based on current settings
+        current_theme = self.config_manager.get('theme', 'dark')
+        print(f"SettingsDialog: Applying initial theme {current_theme}")
+        if current_theme == 'light':
+            self._apply_light_theme()
+        else:
+            self._apply_dark_theme()
     
     def _apply_dark_theme(self):
         """Apply dark theme based on light theme structure."""
@@ -86,6 +91,42 @@ class SettingsDialog(QDialog):
                 background-color: #2c2c2e;
                 border: 1px solid #3a3a3c;
                 color: #ffffff;
+            }
+        """)
+    
+    def _apply_light_theme(self):
+        """Apply light theme based on dark theme structure."""
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #f8f9fa;
+                color: #212529;
+            }
+            QLabel {
+                color: #212529;
+            }
+            QGroupBox {
+                color: #212529;
+                border: 2px solid #dee2e6;
+            }
+            QGroupBox::title {
+                color: #007aff;
+            }
+            QCheckBox {
+                color: #212529;
+            }
+            QSpinBox, QComboBox {
+                background-color: #ffffff;
+                border: 1px solid #ced4da;
+                color: #212529;
+            }
+            QPushButton {
+                background-color: #007aff;
+                color: #ffffff;
+            }
+            QPushButton[class="secondary"] {
+                background-color: #f8f9fa;
+                border: 1px solid #ced4da;
+                color: #212529;
             }
         """)
     
@@ -271,40 +312,8 @@ class SettingsDialog(QDialog):
         theme = theme_text.lower()
         
         if theme == 'light':
-            # Apply light theme preview
-            self.setStyleSheet("""
-                QDialog {
-                    background-color: #ffffff;
-                    color: #000000;
-                }
-                QLabel {
-                    color: #000000;
-                }
-                QGroupBox {
-                    color: #000000;
-                    border: 2px solid #e0e0e0;
-                }
-                QGroupBox::title {
-                    color: #007aff;
-                }
-                QCheckBox {
-                    color: #000000;
-                }
-                QSpinBox, QComboBox {
-                    background-color: #f0f0f0;
-                    border: 1px solid #d0d0d0;
-                    color: #000000;
-                }
-                QPushButton {
-                    background-color: #007aff;
-                    color: #ffffff;
-                }
-                QPushButton[class="secondary"] {
-                    background-color: #f0f0f0;
-                    border: 1px solid #d0d0d0;
-                    color: #000000;
-                }
-            """)
+            # Use the proper light theme method
+            self._apply_light_theme()
         else:
-            # Reapply simplified dark theme
+            # Reapply dark theme
             self._apply_dark_theme()
