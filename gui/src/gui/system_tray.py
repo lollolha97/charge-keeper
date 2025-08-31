@@ -357,8 +357,15 @@ class SystemTrayApp:
     def _on_settings_changed(self):
         """Handle settings changes."""
         try:
-            # Update refresh interval directly without QTimer to avoid threading issues
+            # Update refresh interval
             self._update_refresh_interval()
+            
+            # Apply new battery threshold
+            self._apply_battery_threshold()
+            
+            # Apply theme changes to all components
+            self._apply_theme_changes()
+            
         except Exception as e:
             print(f"Error updating settings: {e}")
     
@@ -392,6 +399,43 @@ class SystemTrayApp:
                     print("Warning: Cannot restart timer - not in main thread")
         except Exception as e:
             print(f"Error restarting timer: {e}")
+    
+    def _apply_battery_threshold(self):
+        """Apply new battery threshold from settings."""
+        try:
+            new_threshold = self.config_manager.get('default_threshold', 80)
+            print(f"Applying battery threshold: {new_threshold}%")
+            
+            # Use battery manager to set the threshold
+            result = self.battery_manager.set_threshold(new_threshold)
+            if result.success:
+                print(f"Battery threshold successfully set to {new_threshold}%")
+                # Refresh status to show updated info
+                self.refresh_battery_status()
+            else:
+                print(f"Failed to set battery threshold: {result.error_message}")
+                
+        except Exception as e:
+            print(f"Error applying battery threshold: {e}")
+    
+    def _apply_theme_changes(self):
+        """Apply theme changes to all GUI components."""
+        try:
+            theme = self.config_manager.get('theme', 'dark')
+            print(f"Applying theme: {theme}")
+            
+            # Apply theme to battery popup
+            if hasattr(self.battery_popup, 'apply_theme'):
+                self.battery_popup.apply_theme(theme)
+            
+            # Apply theme to detail dialog if it exists
+            if self.detail_dialog and hasattr(self.detail_dialog, 'apply_theme'):
+                self.detail_dialog.apply_theme(theme)
+                
+            # Settings dialog will apply theme when opened next time
+            
+        except Exception as e:
+            print(f"Error applying theme changes: {e}")
     
     def _on_tray_activated(self, reason):
         """Handle tray icon activation."""
